@@ -10,10 +10,9 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-);
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "https://vslrnhuzzyltzhbzzdcc.supabase.co";
+const SUPABASE_KEY = "sb_secret_TP-7jdwBf6rrtVbxkVk8uA_S83d0jn-";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const RESEND_KEY = Deno.env.get("RESEND_API_KEY")!;
 
 function jobCard(job: any): string {
