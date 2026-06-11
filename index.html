@@ -3442,10 +3442,6 @@ function RewriteStandaloneTab({ t, apiKey }) {
 }
 
 // ============== JOBS TAB ==============
-const SB_URL = "https://vslrnhuzzyltzhbzzdcc.supabase.co";
-const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzbHJuaHV6enlsdHpoYnp6ZGNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjEzMDEsImV4cCI6MjA5NjY5NzMwMX0.xz2EIJ58E0g_Rn9UMO_cI3gmes5zyOfPASpInlCcQbI";
-const PROFILE_ID = "b8ecc682-9d92-4451-8718-b314d498a239";
-
 async function sbFetch(path) {
   const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
     headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` }
