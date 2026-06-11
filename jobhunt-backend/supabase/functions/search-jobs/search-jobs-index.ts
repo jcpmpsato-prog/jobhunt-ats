@@ -10,8 +10,8 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "https://vslrnhuzzyltzhbzzdcc.supabase.co";
-const SUPABASE_KEY = "sb_secret_TP-7jdwBf6rrtVbxkVk8uA_S83d0jn-";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY")!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
