@@ -2881,7 +2881,8 @@ function RewriteModal({ isOpen, onClose, t, cvText, jdText, missingKeywords, api
 function NavTabs({ activeTab, setActiveTab, t, resultCount }) {
   const tabs = [
     { id: 'analyze', icon: 'sparkles', label: t.tabAnalyze || 'Analisar CV' },
-    { id: 'history', icon: 'briefcase', label: t.tabHistory || 'Histórico' },
+    { id: 'jobs', icon: 'briefcase', label: t.tabJobs || 'Minhas Vagas' },
+    { id: 'history', icon: 'refresh', label: t.tabHistory || 'Histórico' },
     { id: 'rewrite', icon: 'edit', label: t.tabRewrite || 'Reescrever CV' },
     { id: 'salary', icon: 'upload', label: t.tabSalary || 'Salário' },
     { id: 'config', icon: 'settings', label: t.tabConfig || 'Configuração' },
@@ -2911,6 +2912,295 @@ function NavTabs({ activeTab, setActiveTab, t, resultCount }) {
           )}
         </button>
       ))}
+    </div>
+  );
+}
+
+// ============== JOBS TAB ==============
+const SB_URL = "https://vslrnhuzzyltzhbzzdcc.supabase.co";
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzbHJuaHV6enlsdHpoYnp6ZGNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjEzMDEsImV4cCI6MjA5NjY5NzMwMX0.xz2EIJ58E0g_Rn9UMO_cI3gmes5zyOfPASpInlCcQbI";
+const PROFILE_ID = "b8ecc682-9d92-4451-8718-b314d498a239";
+
+async function sbFetch(path) {
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` }
+  });
+  if (!r.ok) throw new Error(`Supabase ${r.status}`);
+  return r.json();
+}
+
+async function sbPost(fn, body) {
+  const r = await fetch(`${SB_URL}/functions/v1/${fn}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SB_ANON}` },
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+function ScoreBadge({ score }) {
+  if (score == null) return <span style={{fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono,monospace'}}>—</span>;
+  const color = score >= 70 ? '#10d9a0' : score >= 50 ? '#fbbf24' : '#f87171';
+  return (
+    <div style={{
+      width:52, height:52, borderRadius:'50%', flexShrink:0,
+      display:'flex', alignItems:'center', justifyContent:'center',
+      background:`${color}18`, border:`2px solid ${color}60`,
+      color, fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:15
+    }}>{score}%</div>
+  );
+}
+
+function JobCard({ job, onSalary, salaryData, loadingSalary }) {
+  const [expanded, setExpanded] = useState(false);
+  const sourceLabel = { linkedin_rss:'LinkedIn', remotive:'Remotive', adzuna:'Adzuna' }[job.source] || job.source;
+  const fmt = n => n ? `R$ ${Math.round(n).toLocaleString('pt-BR')}` : null;
+  return (
+    <div style={{
+      background:'var(--surface)', border:`1px solid ${expanded ? 'var(--cyan)' : 'var(--border)'}`,
+      borderRadius:14, padding:'18px 20px', transition:'border-color 0.2s'
+    }}>
+      <div style={{display:'flex', gap:16, alignItems:'flex-start'}}>
+        <ScoreBadge score={job.match_score}/>
+        <div style={{flex:1, minWidth:0}}>
+          <div style={{display:'flex', gap:8, alignItems:'center', flexWrap:'wrap', marginBottom:4}}>
+            <span style={{fontFamily:'Syne,sans-serif', fontWeight:700, fontSize:15, color:'var(--text-bright)'}}>{job.title}</span>
+            {job.match_score >= 70 && <span style={{fontSize:10, background:'#10d9a018', color:'#10d9a0', border:'1px solid #10d9a040', borderRadius:4, padding:'2px 7px', fontWeight:700}}>ALTA MATCH</span>}
+          </div>
+          <div style={{fontSize:13, color:'var(--muted)', marginBottom:6}}>
+            {job.company && <span>{job.company} · </span>}
+            {job.location && <span>{job.location} · </span>}
+            <span style={{color:'var(--cyan)'}}>{sourceLabel}</span>
+          </div>
+          {/* Salary */}
+          {(job.salary_min || salaryData) && (
+            <div style={{fontSize:12, color:'#10d9a0', marginBottom:6}}>
+              💰 {salaryData
+                ? `Mercado: ${fmt(salaryData.market_min)} – ${fmt(salaryData.market_max)}/mês`
+                : `${fmt(job.salary_min)}${job.salary_max ? ` – ${fmt(job.salary_max)}` : '+'}/mês${job.salary_estimated ? ' (estimado)' : ''}`
+              }
+            </div>
+          )}
+          {/* Match reasons */}
+          {job.match_reasons?.length > 0 && (
+            <div style={{display:'flex', gap:6, flexWrap:'wrap', marginBottom:6}}>
+              {job.match_reasons.slice(0,2).map((r,i) => (
+                <span key={i} style={{fontSize:11, background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:4, padding:'2px 8px', color:'var(--text)'}}>{r}</span>
+              ))}
+            </div>
+          )}
+          {/* Salary analysis */}
+          {salaryData?.analysis && (
+            <div style={{fontSize:12, color:'var(--text)', lineHeight:1.6, background:'var(--surface2)', borderRadius:8, padding:'10px 12px', marginTop:8, marginBottom:6}}>
+              {salaryData.analysis}
+            </div>
+          )}
+          {/* Description preview */}
+          {expanded && job.description && (
+            <div style={{fontSize:12, color:'var(--muted)', lineHeight:1.6, marginTop:8, maxHeight:120, overflow:'hidden'}}>
+              {job.description.slice(0, 400)}...
+            </div>
+          )}
+        </div>
+      </div>
+      <div style={{display:'flex', gap:8, marginTop:14, flexWrap:'wrap'}}>
+        <a href={job.url} target="_blank" style={{
+          padding:'7px 16px', background:'linear-gradient(135deg,#00e5ff,#0080ff)',
+          borderRadius:8, color:'#000', fontSize:12, fontWeight:700, textDecoration:'none'
+        }}>Ver vaga →</a>
+        <button onClick={() => setExpanded(!expanded)} style={{
+          padding:'7px 14px', background:'var(--surface2)', border:'1px solid var(--border)',
+          borderRadius:8, color:'var(--text)', fontSize:12, cursor:'pointer'
+        }}>{expanded ? 'Menos ▲' : 'Detalhes ▼'}</button>
+        <button onClick={() => onSalary(job)} disabled={loadingSalary === job.id} style={{
+          padding:'7px 14px', background:'var(--surface2)', border:'1px solid var(--border)',
+          borderRadius:8, color:'var(--cyan)', fontSize:12, cursor:'pointer',
+          opacity: loadingSalary === job.id ? 0.5 : 1
+        }}>
+          {loadingSalary === job.id ? '🔍 Analisando...' : '💰 Ver Salário'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function JobsTab({ t, apiKey }) {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [scoring, setScoring] = useState(false);
+  const [error, setError] = useState(null);
+  const [salaryMap, setSalaryMap] = useState({});
+  const [loadingSalary, setLoadingSalary] = useState(null);
+  const [filter, setFilter] = useState('all'); // all | high | mid | low | unscored
+  const [sortBy, setSortBy] = useState('score'); // score | date
+
+  const loadJobs = async () => {
+    setLoading(true); setError(null);
+    try {
+      const data = await sbFetch(`jobs?profile_id=eq.${PROFILE_ID}&select=*&order=match_score.desc.nullslast,found_at.desc&limit=50`);
+      setJobs(data);
+    } catch(e) { setError(e.message); }
+    setLoading(false);
+  };
+
+  const searchNewJobs = async () => {
+    setSearching(true); setError(null);
+    try {
+      const data = await sbPost('search-jobs', { profile_id: PROFILE_ID });
+      if (data.error) throw new Error(data.error);
+      await loadJobs();
+    } catch(e) { setError(e.message); }
+    setSearching(false);
+  };
+
+  const scoreJobs = async () => {
+    if (!apiKey) { setError('Insira sua API Key na aba Configuração para usar o scoring com IA.'); return; }
+    setScoring(true); setError(null);
+    try {
+      // Get unscored jobs
+      const unscored = jobs.filter(j => j.match_score == null && j.description);
+      if (unscored.length === 0) { setScoring(false); return; }
+      // Process in batches of 10
+      const batches = [];
+      for (let i = 0; i < unscored.length; i += 10) batches.push(unscored.slice(i, i+10));
+      for (const batch of batches) {
+        const jobsList = batch.map((j,i) => `[${i}] ${j.title} — ${j.company||'?'} — ${j.location||'?'}\n${(j.description||'').slice(0,300)}`).join('\n\n');
+        const cvRes = await sbFetch(`profiles?id=eq.${PROFILE_ID}&select=cv_text`);
+        const cvText = cvRes[0]?.cv_text || '';
+        const prompt = `Você é especialista em recrutamento. Avalie o match entre o perfil e cada vaga.\n\nPERFIL:\n${cvText.slice(0,2000)}\n\nVAGAS:\n${jobsList}\n\nResponda APENAS com JSON array (sem markdown): [{"index":0,"score":<0-100>,"reasons":["razão 1","razão 2"]}]`;
+        const r = await fetch('https://api.anthropic.com/v1/messages', {
+          method:'POST',
+          headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+          body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}]})
+        });
+        const res = await r.json();
+        const text = (res.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
+        const scores = JSON.parse(text);
+        // Update each job in Supabase
+        for (const s of scores) {
+          const job = batch[s.index];
+          if (!job) continue;
+          await fetch(`${SB_URL}/rest/v1/jobs?id=eq.${job.id}`, {
+            method:'PATCH',
+            headers:{apikey:SB_ANON,Authorization:`Bearer ${SB_ANON}`,'Content-Type':'application/json',Prefer:'return=minimal'},
+            body:JSON.stringify({match_score:s.score,match_reasons:s.reasons})
+          });
+        }
+      }
+      await loadJobs();
+    } catch(e) { setError(e.message); }
+    setScoring(false);
+  };
+
+  const getSalary = async (job) => {
+    setLoadingSalary(job.id);
+    try {
+      const data = await sbPost('salary-analysis', { job_id: job.id });
+      setSalaryMap(prev => ({ ...prev, [job.id]: data }));
+    } catch(e) {}
+    setLoadingSalary(null);
+  };
+
+  useEffect(() => { loadJobs(); }, []);
+
+  const unscoredCount = jobs.filter(j => j.match_score == null).length;
+
+  const filtered = jobs
+    .filter(j => {
+      if (filter === 'high') return j.match_score >= 70;
+      if (filter === 'mid') return j.match_score >= 50 && j.match_score < 70;
+      if (filter === 'low') return j.match_score != null && j.match_score < 50;
+      if (filter === 'unscored') return j.match_score == null;
+      return true;
+    })
+    .sort((a,b) => {
+      if (sortBy === 'date') return new Date(b.found_at) - new Date(a.found_at);
+      return (b.match_score||0) - (a.match_score||0);
+    });
+
+  return (
+    <div>
+      {/* Header bar */}
+      <div style={{display:'flex',gap:10,marginBottom:20,flexWrap:'wrap',alignItems:'center'}}>
+        <div style={{flex:1}}>
+          <div style={{fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:22,color:'var(--text-bright)'}}>
+            Vagas para mim
+          </div>
+          <div style={{fontSize:13,color:'var(--muted)',marginTop:2}}>
+            {jobs.length} vagas encontradas · {jobs.filter(j=>j.match_score>=70).length} alta aderência
+          </div>
+        </div>
+        <button onClick={searchNewJobs} disabled={searching} style={{
+          padding:'10px 18px',background:'var(--surface)',border:'1px solid var(--cyan)',
+          borderRadius:10,color:'var(--cyan)',fontSize:13,fontWeight:700,cursor:searching?'not-allowed':'pointer',
+          opacity:searching?0.6:1,display:'flex',alignItems:'center',gap:6
+        }}>
+          {searching ? '🔍 Buscando...' : '🔍 Buscar novas vagas'}
+        </button>
+        {unscoredCount > 0 && (
+          <button onClick={scoreJobs} disabled={scoring||!apiKey} style={{
+            padding:'10px 18px',background:'var(--surface)',border:'1px solid var(--purple)',
+            borderRadius:10,color:'var(--purple)',fontSize:13,fontWeight:700,
+            cursor:scoring||!apiKey?'not-allowed':'pointer',opacity:scoring||!apiKey?0.6:1,
+            display:'flex',alignItems:'center',gap:6
+          }}>
+            {scoring ? '⚡ Calculando...' : `⚡ Calcular Score (${unscoredCount})`}
+          </button>
+        )}
+      </div>
+
+      {/* Filters */}
+      <div style={{display:'flex',gap:8,marginBottom:20,flexWrap:'wrap',alignItems:'center'}}>
+        {[['all','Todas'],['high','Alta ✅'],['mid','Média ⚡'],['low','Baixa'],['unscored','Sem score']].map(([v,l])=>(
+          <button key={v} onClick={()=>setFilter(v)} style={{
+            padding:'6px 14px',fontSize:12,borderRadius:8,cursor:'pointer',fontWeight:600,
+            background:filter===v?'var(--cyan)':'var(--surface2)',
+            color:filter===v?'#000':'var(--muted)',
+            border:`1px solid ${filter===v?'var(--cyan)':'var(--border)'}`
+          }}>{l}</button>
+        ))}
+        <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>
+          <span style={{fontSize:12,color:'var(--muted)'}}>Ordenar:</span>
+          {[['score','Score'],['date','Recentes']].map(([v,l])=>(
+            <button key={v} onClick={()=>setSortBy(v)} style={{
+              padding:'6px 12px',fontSize:12,borderRadius:8,cursor:'pointer',
+              background:sortBy===v?'var(--surface3)':'transparent',
+              color:sortBy===v?'var(--text)':'var(--muted)',
+              border:`1px solid ${sortBy===v?'var(--border)':'transparent'}`
+            }}>{l}</button>
+          ))}
+        </div>
+      </div>
+
+      {error && <div style={{color:'var(--red)',fontSize:13,marginBottom:16,padding:'10px 14px',background:'rgba(248,113,113,0.1)',borderRadius:8}}>{error}</div>}
+
+      {loading && (
+        <div style={{textAlign:'center',padding:48,color:'var(--muted)'}}>
+          <div className="spinner" style={{width:32,height:32,margin:'0 auto 12px'}}/>
+          Carregando vagas...
+        </div>
+      )}
+
+      {!loading && filtered.length === 0 && (
+        <div style={{textAlign:'center',padding:48,color:'var(--muted)'}}>
+          <div style={{fontSize:32,marginBottom:12}}>💼</div>
+          <div style={{marginBottom:16}}>{jobs.length === 0 ? 'Nenhuma vaga encontrada ainda.' : 'Nenhuma vaga neste filtro.'}</div>
+          {jobs.length === 0 && (
+            <button onClick={searchNewJobs} style={{
+              padding:'10px 24px',background:'linear-gradient(135deg,#00e5ff,#0080ff)',
+              border:'none',borderRadius:10,color:'#000',fontSize:13,fontWeight:700,cursor:'pointer'
+            }}>Buscar vagas agora</button>
+          )}
+        </div>
+      )}
+
+      <div style={{display:'flex',flexDirection:'column',gap:12}}>
+        {filtered.map(job => (
+          <JobCard key={job.id} job={job} onSalary={getSalary}
+            salaryData={salaryMap[job.id]} loadingSalary={loadingSalary}/>
+        ))}
+      </div>
     </div>
   );
 }
@@ -3151,6 +3441,164 @@ function RewriteStandaloneTab({ t, apiKey }) {
   );
 }
 
+// ============== JOBS TAB ==============
+const SB_URL = "https://vslrnhuzzyltzhbzzdcc.supabase.co";
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzbHJuaHV6enlsdHpoYnp6ZGNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjEzMDEsImV4cCI6MjA5NjY5NzMwMX0.xz2EIJ58E0g_Rn9UMO_cI3gmes5zyOfPASpInlCcQbI";
+const PROFILE_ID = "b8ecc682-9d92-4451-8718-b314d498a239";
+
+async function sbFetch(path) {
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` }
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function triggerJobSearch() {
+  const r = await fetch(`${SB_URL}/functions/v1/search-jobs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SB_ANON}` },
+    body: JSON.stringify({ profile_id: PROFILE_ID })
+  });
+  return r.json();
+}
+
+async function triggerSalaryAnalysis(jobId) {
+  const r = await fetch(`${SB_URL}/functions/v1/salary-analysis`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SB_ANON}` },
+    body: JSON.stringify({ job_id: jobId })
+  });
+  return r.json();
+}
+
+function JobCard({ job }) {
+  const score = job.match_score;
+  const scoreColor = score >= 70 ? '#10d9a0' : score >= 50 ? '#fbbf24' : score ? '#f87171' : '#5a708a';
+  const sourceLabel = { linkedin_rss: 'LinkedIn', remotive: 'Remotive', adzuna: 'Adzuna' }[job.source] || job.source;
+  const [salaryData, setSalaryData] = useState(null);
+  const [loadingSalary, setLoadingSalary] = useState(false);
+
+  const fetchSalary = async () => {
+    setLoadingSalary(true);
+    try { const d = await triggerSalaryAnalysis(job.id); setSalaryData(d); } catch(e) {}
+    setLoadingSalary(false);
+  };
+
+  return (
+    <div style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, padding:'18px 20px', marginBottom:12}}>
+      <div style={{display:'flex', alignItems:'flex-start', gap:14}}>
+        <div style={{width:52, height:52, borderRadius:'50%', flexShrink:0, background:`${scoreColor}18`, border:`2px solid ${scoreColor}50`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+          <span style={{fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:14, color:scoreColor}}>{score ? `${score}%` : '—'}</span>
+        </div>
+        <div style={{flex:1, minWidth:0}}>
+          <div style={{fontFamily:'Syne,sans-serif', fontWeight:700, fontSize:15, color:'var(--text-bright)', marginBottom:3}}>{job.title}</div>
+          <div style={{fontSize:12, color:'var(--muted)', marginBottom:6}}>
+            {job.company && `${job.company} · `}{job.location || ''} · <span style={{color:'var(--cyan)'}}>{sourceLabel}</span>
+          </div>
+          {job.match_reasons?.length > 0 && (
+            <div style={{display:'flex', flexWrap:'wrap', gap:4, marginBottom:8}}>
+              {job.match_reasons.slice(0,3).map((r,i) => (
+                <span key={i} style={{fontSize:10, padding:'3px 8px', borderRadius:20, background:'rgba(0,229,255,0.08)', color:'var(--cyan)', border:'1px solid rgba(0,229,255,0.2)'}}>{r}</span>
+              ))}
+            </div>
+          )}
+          {salaryData && (
+            <div style={{fontSize:12, color:'#10d9a0', marginBottom:4}}>
+              💰 R$ {Math.round(salaryData.market_min||0).toLocaleString('pt-BR')} – R$ {Math.round(salaryData.market_max||0).toLocaleString('pt-BR')}/mês
+              {salaryData.analysis && <div style={{fontSize:11, color:'var(--muted)', marginTop:4, fontStyle:'italic'}}>{salaryData.analysis.slice(0,180)}...</div>}
+            </div>
+          )}
+          {!salaryData && job.salary_min && (
+            <div style={{fontSize:12, color:'#10d9a0'}}>💰 R$ {Math.round(job.salary_min).toLocaleString('pt-BR')}{job.salary_max ? ` – R$ ${Math.round(job.salary_max).toLocaleString('pt-BR')}` : '+'}{job.salary_estimated ? ' (estimado)' : ''}</div>
+          )}
+        </div>
+        <div style={{display:'flex', flexDirection:'column', gap:6, flexShrink:0}}>
+          <a href={job.url} target="_blank" style={{padding:'7px 14px', background:'linear-gradient(135deg,#00e5ff,#0080ff)', border:'none', borderRadius:8, color:'#000', fontSize:11, fontWeight:700, textDecoration:'none', textAlign:'center', display:'block'}}>Ver vaga →</a>
+          {!salaryData && (
+            <button onClick={fetchSalary} disabled={loadingSalary} style={{padding:'7px 14px', background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:8, color:'var(--gold)', fontSize:11, fontWeight:600, cursor:'pointer', opacity:loadingSalary?0.5:1}}>
+              {loadingSalary ? '...' : '💰 Salário'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function JobsTab({ t }) {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
+  const [filter, setFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('score');
+  const [searchResult, setSearchResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  const loadJobs = async () => {
+    setLoading(true); setError(null);
+    try { const d = await sbFetch(`jobs?profile_id=eq.${PROFILE_ID}&select=*&order=found_at.desc&limit=100`); setJobs(d||[]); }
+    catch(e) { setError(e.message); }
+    setLoading(false);
+  };
+
+  const runSearch = async () => {
+    setSearching(true); setSearchResult(null);
+    try { const d = await triggerJobSearch(); setSearchResult(d); await loadJobs(); }
+    catch(e) { setError(e.message); }
+    setSearching(false);
+  };
+
+  useEffect(() => { loadJobs(); }, []);
+
+  const filtered = jobs
+    .filter(j => filter === 'all' || (filter === 'scored' && j.match_score) || (filter === 'linkedin' && j.source === 'linkedin_rss') || (filter === 'remote' && j.source === 'remotive'))
+    .sort((a, b) => sortBy === 'score' ? (b.match_score||0) - (a.match_score||0) : new Date(b.found_at) - new Date(a.found_at));
+
+  const highMatch = jobs.filter(j => j.match_score >= 70).length;
+
+  return (
+    <div>
+      <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:20}}>
+        {[['Total', jobs.length, 'var(--cyan)'], ['Match 70%+', highMatch, '#10d9a0'], ['LinkedIn', jobs.filter(j=>j.source==='linkedin_rss').length, 'var(--purple)'], ['Remotas', jobs.filter(j=>j.source==='remotive').length, 'var(--gold)']].map(([l,v,c])=>(
+          <div key={l} style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:12, padding:'14px', textAlign:'center'}}>
+            <div style={{fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:24, color:c}}>{v}</div>
+            <div style={{fontSize:11, color:'var(--muted)', marginTop:2}}>{l}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{display:'flex', gap:10, marginBottom:16, flexWrap:'wrap', alignItems:'center'}}>
+        <button onClick={runSearch} disabled={searching} style={{padding:'10px 20px', background:'linear-gradient(135deg,#00e5ff,#0080ff)', border:'none', borderRadius:10, color:'#000', fontSize:13, fontWeight:700, cursor:searching?'not-allowed':'pointer', opacity:searching?0.6:1, display:'flex', alignItems:'center', gap:7}}>
+          <Icon name="refresh" size={14}/>{searching ? 'Buscando...' : 'Buscar novas vagas'}
+        </button>
+        <select value={filter} onChange={e=>setFilter(e.target.value)} style={{padding:'10px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, color:'var(--text)', fontSize:13}}>
+          <option value="all">Todas</option><option value="scored">Com score</option><option value="linkedin">LinkedIn</option><option value="remote">Remotas</option>
+        </select>
+        <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{padding:'10px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, color:'var(--text)', fontSize:13}}>
+          <option value="score">Melhor match</option><option value="date">Mais recentes</option>
+        </select>
+        <button onClick={loadJobs} style={{padding:'10px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, color:'var(--muted)', fontSize:13, cursor:'pointer'}}>↻</button>
+      </div>
+      {searchResult && (
+        <div style={{background:'rgba(16,217,160,0.08)', border:'1px solid rgba(16,217,160,0.3)', borderRadius:10, padding:'12px 16px', marginBottom:16, fontSize:13, color:'#10d9a0'}}>
+          ✅ Encontradas <strong>{searchResult.found}</strong> vagas — LinkedIn: {searchResult.sources?.linkedin}, Remotive: {searchResult.sources?.remotive}
+        </div>
+      )}
+      {error && <div style={{color:'var(--red)', fontSize:13, marginBottom:12}}>Erro: {error}</div>}
+      {loading
+        ? <div style={{textAlign:'center', padding:48, color:'var(--muted)'}}><div className="spinner" style={{margin:'0 auto 16px'}}/>Carregando vagas...</div>
+        : filtered.length === 0
+          ? <div style={{textAlign:'center', padding:48, color:'var(--muted)'}}>
+              <div style={{fontSize:32, marginBottom:12}}>🔍</div>
+              <div>Nenhuma vaga encontrada.</div>
+              <button onClick={runSearch} style={{marginTop:16, padding:'10px 24px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, color:'var(--cyan)', cursor:'pointer', fontSize:13}}>Buscar vagas agora →</button>
+            </div>
+          : filtered.map(job => <JobCard key={job.id} job={job} />)
+      }
+    </div>
+  );
+}
+
 // ============== APP ==============
 function App() {
   const [lang, setLang] = useState('pt');
@@ -3212,6 +3660,8 @@ function App() {
           </>
         )}
 
+        {activeTab === 'jobs' && <JobsTab t={t} />}
+        {activeTab === 'jobs' && <JobsTab t={t} apiKey={apiKey}/>}
         {activeTab === 'history' && (
           <div>
             {historyList.length === 0

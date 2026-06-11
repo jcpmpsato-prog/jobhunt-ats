@@ -102,47 +102,49 @@ async function searchRemotive(keywords: string[]) {
 }
 
 // ---------- MATCH SCORE com Claude ----------
-async function scoreJobs(cvText: string, jobs: any[]) {
-  if (jobs.length === 0) return jobs;
-  const jobsList = jobs.map((j, i) =>
-    `[${i}] ${j.title} — ${j.company || "?"} — ${j.location || "?"}\n${(j.description || "").slice(0, 300)}`
+async function scoreBatch(cvText: string, batch: any[], offset: number) {
+  const jobsList = batch.map((j, i) =>
+    `[${i + offset}] ${j.title} — ${j.company || "?"} — ${j.location || "?"}\n${(j.description || "").slice(0, 200)}`
   ).join("\n\n");
 
-  const prompt = `Você é um especialista em recrutamento. Avalie o match entre o perfil do candidato e cada vaga.
+  const prompt = `Especialista em recrutamento: avalie o match entre o perfil e cada vaga.
 
-PERFIL DO CANDIDATO (resumo do CV):
-${cvText.slice(0, 2000)}
+PERFIL:
+${cvText.slice(0, 1500)}
 
 VAGAS:
 ${jobsList}
 
-Responda APENAS com JSON válido (array, mesma ordem das vagas):
-[{"index": 0, "score": <0-100>, "reasons": ["razão 1", "razão 2"]}]`;
+JSON APENAS (array):
+[{"index": 0, "score": <0-100>, "reasons": ["razão 1"]}]`;
 
-  try {
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1500,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
-    const data = await r.json();
-    const text = data.content[0].text.replace(/```json|```/g, "").trim();
-    const scores = JSON.parse(text);
-    for (const s of scores) {
-      if (jobs[s.index]) {
-        jobs[s.index].match_score = s.score;
-        jobs[s.index].match_reasons = s.reasons;
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01" },
+    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 800, messages: [{ role: "user", content: prompt }] }),
+  });
+  if (!r.ok) throw new Error(`API ${r.status}`);
+  const data = await r.json();
+  const text = (data.content?.[0]?.text || "").replace(/```json|```/g, "").trim();
+  const match = text.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error("No JSON array in response");
+  return JSON.parse(match[0]);
+}
+
+async function scoreJobs(cvText: string, jobs: any[]) {
+  if (jobs.length === 0) return jobs;
+  const BATCH = 8;
+  for (let i = 0; i < jobs.length; i += BATCH) {
+    const batch = jobs.slice(i, i + BATCH);
+    try {
+      const scores = await scoreBatch(cvText, batch, i);
+      for (const s of scores) {
+        if (jobs[s.index]) {
+          jobs[s.index].match_score = s.score;
+          jobs[s.index].match_reasons = s.reasons;
+        }
       }
-    }
-  } catch (e) {
+    } catch (e) {
     console.error("Score error:", e);
   }
   return jobs;
