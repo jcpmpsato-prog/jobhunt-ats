@@ -1,0 +1,3713 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATS Analyzer · AI Environment</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  if (window.pdfjsLib) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
+<style>
+  :root {
+    --bg-deep: #03060f;
+    --bg: #050912;
+    --bg2: #080d1a;
+    --surface: rgba(15, 25, 45, 0.55);
+    --surface-solid: #0c1428;
+    --surface2: rgba(20, 35, 60, 0.6);
+    --surface3: #14223e;
+    --border: rgba(0, 229, 255, 0.14);
+    --border-strong: rgba(0, 229, 255, 0.3);
+    --border-soft: rgba(255, 255, 255, 0.05);
+    --cyan: #00e5ff;
+    --cyan-deep: #00b4d8;
+    --blue: #0080ff;
+    --blue-glow: rgba(0, 229, 255, 0.5);
+    --gold: #fbbf24;
+    --green: #10d9a0;
+    --red: #f87171;
+    --purple: #a78bfa;
+    --pink: #ec4899;
+    --text: #d8e3f0;
+    --text-bright: #ffffff;
+    --muted: #5a708a;
+    --muted2: #8ba1bd;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg-deep);
+    color: var(--text);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* AI ENVIRONMENT BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0, 229, 255, 0.12), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 100% 100%, rgba(0, 128, 255, 0.08), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 0% 100%, rgba(167, 139, 250, 0.06), transparent 60%);
+    z-index: -2;
+    pointer-events: none;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+    background-size: 50px 50px;
+    background-position: -1px -1px;
+    z-index: -1;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+  }
+
+  .display { font-family: 'Syne', sans-serif; letter-spacing: -0.02em; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* HEADER */
+  .header {
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(3, 6, 15, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    max-width: 1200px; margin: 0 auto; padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .brand-logo {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #000;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.4), inset 0 0 12px rgba(255, 255, 255, 0.2);
+    position: relative;
+  }
+  .brand-logo::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    border-radius: 12px;
+    z-index: -1;
+    filter: blur(8px);
+    opacity: 0.5;
+  }
+  .brand-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--text-bright);
+    letter-spacing: 0.02em;
+  }
+  .brand-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .lang-switch {
+    display: flex; background: var(--surface-solid); border: 1px solid var(--border); border-radius: 999px; padding: 3px;
+  }
+  .lang-btn {
+    padding: 5px 12px; font-size: 11px; font-weight: 700; border: 0; background: transparent;
+    color: var(--muted2); border-radius: 999px; cursor: pointer; transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .lang-btn.active { background: linear-gradient(135deg, var(--cyan), var(--blue)); color: #000; box-shadow: 0 0 12px rgba(0, 229, 255, 0.3); }
+  .header-pill {
+    padding: 8px 16px; font-size: 12px; font-weight: 600;
+    color: var(--text); background: var(--surface-solid); border: 1px solid var(--border);
+    border-radius: 999px; cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'DM Sans', sans-serif; white-space: nowrap;
+  }
+  .header-pill:hover { border-color: var(--border-strong); color: var(--text-bright); box-shadow: 0 0 16px rgba(0, 229, 255, 0.2); }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  /* AI ENVIRONMENT FRAME COMPONENTS */
+  .ai-card {
+    position: relative;
+    background: var(--surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    overflow: hidden;
+  }
+  .ai-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 16px; right: 16px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.5;
+  }
+  .ai-card-corner {
+    position: absolute;
+    width: 14px; height: 14px;
+    border-color: var(--cyan);
+    border-style: solid;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+  .ai-card-corner.tl { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+  .ai-card-corner.tr { top: 8px; right: 8px; border-width: 1px 1px 0 0; }
+  .ai-card-corner.bl { bottom: 8px; left: 8px; border-width: 0 0 1px 1px; }
+  .ai-card-corner.br { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+
+  /* HERO SECTION (PAGE 1) */
+  .hero {
+    text-align: center;
+    padding: 32px 0 48px;
+  }
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(0, 229, 255, 0.05);
+    border: 1px solid rgba(0, 229, 255, 0.25);
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .hero-tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--cyan);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--cyan);
+    animation: blink 2s infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 18px;
+    color: var(--text-bright);
+  }
+  .hero-title .gradient {
+    background: linear-gradient(135deg, var(--cyan), var(--blue), var(--purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+  .hero-desc {
+    max-width: 600px; margin: 0 auto;
+    font-size: 16px;
+    color: var(--muted2);
+    line-height: 1.6;
+  }
+
+  /* INPUT GRID */
+  .input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 800px) { .input-grid { grid-template-columns: 1fr; } }
+
+  .input-card {
+    display: flex; flex-direction: column;
+    min-height: 480px;
+  }
+  .input-head {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 18px;
+  }
+  .input-icon {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(0, 128, 255, 0.1));
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--cyan);
+    flex-shrink: 0;
+  }
+  .input-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--cyan);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .input-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    flex: 1;
+    border: 2px dashed var(--border-strong);
+    border-radius: 14px;
+    background: rgba(0, 229, 255, 0.02);
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    min-height: 320px;
+  }
+  .upload-zone:hover {
+    border-color: var(--cyan);
+    background: rgba(0, 229, 255, 0.04);
+    box-shadow: inset 0 0 30px rgba(0, 229, 255, 0.05);
+  }
+  .upload-zone.drag {
+    border-color: var(--cyan);
+    background: rgba(0, 229, 255, 0.08);
+    transform: scale(1.01);
+  }
+  .upload-icon-glow {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #000;
+    margin-bottom: 18px;
+    box-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+    position: relative;
+  }
+  .upload-icon-glow::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    border-radius: 50%;
+    z-index: -1;
+    filter: blur(12px);
+    opacity: 0.4;
+    animation: pulse-glow 3s infinite;
+  }
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
+  }
+  .upload-text {
+    font-size: 15px; font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 6px;
+  }
+  .upload-subtext {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .upload-formats {
+    display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+  }
+  .format-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--cyan);
+    letter-spacing: 0.05em;
+  }
+
+  /* FILE LOADED STATE */
+  .file-loaded {
+    flex: 1;
+    background: rgba(16, 217, 160, 0.05);
+    border: 1px solid rgba(16, 217, 160, 0.3);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  .file-loaded-head {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+  }
+  .file-loaded-icon {
+    width: 44px; height: 44px;
+    background: rgba(16, 217, 160, 0.15);
+    border: 1px solid rgba(16, 217, 160, 0.4);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--green);
+    flex-shrink: 0;
+  }
+  .file-loaded-info { flex: 1; min-width: 0; }
+  .file-loaded-name {
+    font-size: 13px; font-weight: 600;
+    color: var(--text-bright);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 2px;
+  }
+  .file-loaded-stats {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: 0.05em;
+    display: flex;
+    gap: 10px;
+  }
+  .file-loaded-remove {
+    width: 28px; height: 28px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .file-loaded-remove:hover {
+    background: rgba(248, 113, 113, 0.1);
+    color: var(--red);
+    border-color: rgba(248, 113, 113, 0.3);
+  }
+
+  .cv-preview {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    overflow-y: auto;
+    font-size: 12px;
+    color: var(--muted2);
+    line-height: 1.65;
+    font-family: 'DM Sans', sans-serif;
+    white-space: pre-wrap;
+    max-height: 200px;
+  }
+
+  .cv-or-paste {
+    display: flex; align-items: center; gap: 12px;
+    margin: 14px 0;
+    color: var(--muted);
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .cv-or-paste::before, .cv-or-paste::after {
+    content: '';
+    flex: 1; height: 1px;
+    background: var(--border);
+  }
+  .paste-link {
+    color: var(--cyan);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .paste-link:hover { background: rgba(0, 229, 255, 0.1); }
+
+  .text-input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
+    transition: border-color 0.15s;
+    min-height: 320px;
+  }
+  .text-input:focus {
+    border-color: var(--cyan);
+    box-shadow: inset 0 0 20px rgba(0, 229, 255, 0.05);
+  }
+  .text-input::placeholder { color: var(--muted); font-style: italic; }
+
+  .extracting-status {
+    background: rgba(0, 229, 255, 0.05);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 12px;
+  }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .extracting-text {
+    font-size: 13px;
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+  .extracting-error { background: rgba(248, 113, 113, 0.05); border-color: rgba(248, 113, 113, 0.3); }
+  .extracting-error .extracting-text { color: var(--red); }
+
+  /* CTA */
+  .cta-section {
+    text-align: center;
+  }
+  .btn-primary-big {
+    padding: 18px 48px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #000;
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary-big:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 0 50px rgba(0, 229, 255, 0.6);
+  }
+  .btn-primary-big:disabled {
+    background: var(--surface3);
+    color: var(--muted);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .btn-primary-big::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s;
+  }
+  .btn-primary-big:hover::before { left: 100%; }
+
+  .config-collapsed {
+    max-width: 580px;
+    margin: 24px auto 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .config-toggle {
+    width: 100%;
+    background: transparent;
+    border: 0;
+    padding: 14px 18px;
+    color: var(--muted2);
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: color 0.15s;
+  }
+  .config-toggle:hover { color: var(--text); }
+  .config-toggle-left { display: flex; align-items: center; gap: 8px; }
+  .config-body {
+    padding: 0 18px 18px;
+    border-top: 1px solid var(--border);
+  }
+  .config-body label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted2);
+    margin: 12px 0 6px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .config-body input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    outline: none;
+  }
+  .config-body input:focus { border-color: var(--cyan); }
+  .config-help { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+  .config-help a { color: var(--cyan); text-decoration: none; }
+  .config-help a:hover { text-decoration: underline; }
+
+  /* PROCESSING */
+  .processing-screen {
+    min-height: 70vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 60px 24px;
+  }
+  .ai-orb {
+    width: 200px; height: 200px;
+    position: relative;
+    margin-bottom: 40px;
+  }
+  .ai-orb-ring {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--cyan);
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: orb-pulse 3s ease-out infinite;
+  }
+  .ai-orb-ring:nth-child(2) { animation-delay: 1s; }
+  .ai-orb-ring:nth-child(3) { animation-delay: 2s; }
+  @keyframes orb-pulse {
+    0% { transform: scale(0.4); opacity: 0.8; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+  .ai-orb-core {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 100px; height: 100px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, var(--cyan), var(--blue));
+    border-radius: 50%;
+    box-shadow: 0 0 60px rgba(0, 229, 255, 0.6), inset 0 0 40px rgba(255, 255, 255, 0.2);
+    display: flex; align-items: center; justify-content: center;
+    color: #000;
+    animation: orb-rotate 4s linear infinite;
+  }
+  @keyframes orb-rotate { from { transform: translate(-50%, -50%) rotate(0); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+  .processing-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text-bright);
+    margin-bottom: 12px;
+  }
+  .processing-step {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--cyan);
+    letter-spacing: 0.05em;
+    min-height: 20px;
+    margin-bottom: 32px;
+  }
+  .processing-bar {
+    width: 320px; height: 3px;
+    background: var(--surface3);
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+  }
+  .processing-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan), var(--blue));
+    transition: width 0.5s ease;
+    box-shadow: 0 0 16px rgba(0, 229, 255, 0.6);
+  }
+
+  /* RESULTS PAGE */
+  .results-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+  }
+  .results-bar-left { display: flex; align-items: center; gap: 12px; }
+  .back-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .back-btn:hover {
+    background: rgba(0, 229, 255, 0.1);
+    color: var(--cyan);
+    border-color: var(--border-strong);
+  }
+  .results-bar-right { display: flex; gap: 8px; }
+  .results-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* HERO RESULT */
+  .result-hero {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 32px;
+    align-items: center;
+  }
+  @media (max-width: 800px) { .result-hero { grid-template-columns: 1fr; } }
+
+  .gauge-wrap {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .gauge-bg {
+    padding: 24px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 229, 255, 0.08), transparent 70%);
+  }
+  .gauge-bg.high { background: radial-gradient(circle, rgba(16, 217, 160, 0.12), transparent 70%); }
+  .gauge-bg.mid { background: radial-gradient(circle, rgba(251, 191, 36, 0.12), transparent 70%); }
+  .gauge-bg.low { background: radial-gradient(circle, rgba(248, 113, 113, 0.12), transparent 70%); }
+
+  .mini-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 28px;
+    margin-top: 28px;
+  }
+  .mini-stat {
+    display: flex; flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .mini-stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .result-info-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    background: rgba(0, 229, 255, 0.05);
+    border: 1px solid rgba(0, 229, 255, 0.25);
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--cyan);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .result-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text-bright);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+  }
+  .result-desc {
+    font-size: 15px;
+    color: var(--muted2);
+    line-height: 1.6;
+    margin-bottom: 22px;
+  }
+  .badges-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge-status {
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* METRIC CARDS GRID */
+  .stack { display: flex; flex-direction: column; gap: 20px; margin-top: 24px; }
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 700px) { .metric-grid { grid-template-columns: 1fr; } }
+  .metric-card {
+    background: var(--surface);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    transition: all 0.2s;
+  }
+  .metric-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+  }
+  .metric-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  .metric-cat {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .metric-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+  .metric-icon-box {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .icon-red { background: rgba(248, 113, 113, 0.12); color: var(--red); border: 1px solid rgba(248, 113, 113, 0.25); }
+  .icon-green { background: rgba(16, 217, 160, 0.12); color: var(--green); border: 1px solid rgba(16, 217, 160, 0.25); }
+  .icon-gold { background: rgba(251, 191, 36, 0.12); color: var(--gold); border: 1px solid rgba(251, 191, 36, 0.25); }
+  .icon-cyan { background: rgba(0, 229, 255, 0.12); color: var(--cyan); border: 1px solid rgba(0, 229, 255, 0.25); }
+  .metric-body {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 14px;
+  }
+  .metric-desc {
+    font-size: 13px;
+    color: var(--muted2);
+    line-height: 1.55;
+    flex: 1;
+  }
+  .progress-track {
+    height: 4px;
+    background: var(--surface3);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .progress-fill.red { background: linear-gradient(90deg, var(--red), #fca5a5); box-shadow: 0 0 8px rgba(248, 113, 113, 0.5); }
+  .progress-fill.green { background: linear-gradient(90deg, var(--green), #6ee7b7); box-shadow: 0 0 8px rgba(16, 217, 160, 0.5); }
+  .progress-fill.gold { background: linear-gradient(90deg, var(--gold), #fde68a); box-shadow: 0 0 8px rgba(251, 191, 36, 0.5); }
+  .progress-fill.cyan { background: linear-gradient(90deg, var(--cyan), var(--blue)); box-shadow: 0 0 8px rgba(0, 229, 255, 0.5); }
+  .progress-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    margin-top: 8px;
+  }
+  .progress-label.red { color: var(--red); }
+  .progress-label.green { color: var(--green); }
+  .progress-label.gold { color: var(--gold); }
+  .progress-label.cyan { color: var(--cyan); }
+
+  /* SECTION HEAD */
+  .section-head {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px;
+  }
+  .section-icon-box {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-cat {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-bright);
+    letter-spacing: -0.01em;
+  }
+
+  .gap-card {
+    background: linear-gradient(180deg, rgba(248, 113, 113, 0.04), var(--surface));
+    border-color: rgba(248, 113, 113, 0.2);
+  }
+  .gap-cat { color: var(--red); }
+  .gap-list { display: flex; flex-direction: column; gap: 10px; }
+  .gap-item {
+    background: var(--surface2);
+    border: 1px solid rgba(248, 113, 113, 0.15);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex; gap: 14px;
+    transition: all 0.15s;
+  }
+  .gap-item:hover { border-color: rgba(248, 113, 113, 0.4); }
+  .gap-icon-circle {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(248, 113, 113, 0.15);
+    color: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .gap-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--red);
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .gap-text { font-size: 13px; color: var(--text); line-height: 1.55; }
+
+  .strength-card {
+    background: linear-gradient(180deg, rgba(16, 217, 160, 0.04), var(--surface));
+    border-color: rgba(16, 217, 160, 0.2);
+  }
+  .strength-cat { color: var(--green); }
+  .strength-item {
+    background: var(--surface2);
+    border: 1px solid rgba(16, 217, 160, 0.15);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 13px; color: var(--text);
+    line-height: 1.55;
+    transition: all 0.15s;
+  }
+  .strength-item:hover { border-color: rgba(16, 217, 160, 0.4); }
+
+  .keywords-cat { color: var(--gold); }
+  .keywords-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 20px; flex-wrap: wrap; gap: 16px;
+  }
+  .coverage-display {
+    text-align: right; min-width: 180px;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+  }
+  .coverage-row { display: flex; align-items: baseline; gap: 8px; }
+  .coverage-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .coverage-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .keywords-desc {
+    font-size: 13px;
+    color: var(--muted2);
+    line-height: 1.6;
+    margin-bottom: 22px;
+  }
+  .keywords-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 28px; padding-top: 22px; border-top: 1px solid var(--border);
+  }
+  @media (max-width: 700px) { .keywords-grid { grid-template-columns: 1fr; } }
+  .kw-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .kw-label.green { color: var(--green); }
+  .kw-label.red { color: var(--red); }
+  .kw-desc { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+  .tags-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    padding: 6px 12px;
+    font-size: 11px; font-weight: 600;
+    border-radius: 999px;
+    border: 1px solid;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tag-green { background: rgba(16, 217, 160, 0.08); color: var(--green); border-color: rgba(16, 217, 160, 0.3); }
+  .tag-red { background: rgba(248, 113, 113, 0.08); color: var(--red); border-color: rgba(248, 113, 113, 0.3); }
+
+  /* ADAPTAR CV CTA */
+  .cta-adapt-card {
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(0, 128, 255, 0.04));
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-adapt-card::before {
+    content: '';
+    position: absolute;
+    top: -50%; right: -20%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0, 229, 255, 0.15), transparent 70%);
+    pointer-events: none;
+  }
+  .cta-adapt-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(16, 217, 160, 0.15);
+    color: var(--green);
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .cta-adapt-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-bright);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+    max-width: 600px;
+  }
+  .cta-adapt-desc {
+    font-size: 14px; color: var(--muted2);
+    line-height: 1.6; margin-bottom: 22px;
+    max-width: 550px;
+  }
+  .cta-adapt-buttons {
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .btn-adapt-primary {
+    padding: 12px 26px;
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    color: #000;
+    border: 0;
+    border-radius: 999px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+    transition: all 0.2s;
+  }
+  .btn-adapt-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 229, 255, 0.6); }
+  .btn-adapt-secondary {
+    padding: 12px 22px;
+    background: transparent;
+    color: var(--muted2);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: all 0.15s;
+  }
+  .btn-adapt-secondary:hover { color: var(--text); border-color: var(--cyan); background: rgba(0, 229, 255, 0.05); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 60;
+    background: rgba(3, 6, 15, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.25s ease;
+  }
+  .modal-card {
+    background: var(--surface-solid);
+    border: 1px solid var(--border-strong);
+    border-radius: 20px;
+    max-width: 720px; width: 100%; max-height: 88vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6), 0 0 80px rgba(0, 229, 255, 0.15);
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .modal-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  }
+  .modal-head {
+    padding: 22px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex; gap: 16px;
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.05), transparent);
+  }
+  .modal-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    color: #000;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+    flex-shrink: 0;
+  }
+  .modal-text { flex: 1; }
+  .modal-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-bright);
+    margin-bottom: 4px;
+  }
+  .modal-desc { font-size: 13px; color: var(--muted2); line-height: 1.5; }
+  .modal-close {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .modal-close:hover { background: var(--surface3); color: var(--text); }
+  .modal-body {
+    padding: 24px 28px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .rewrite-block {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    padding-right: 110px;
+    margin-bottom: 16px;
+  }
+  .rewrite-tag {
+    position: absolute; top: 14px; right: 14px;
+    padding: 4px 10px;
+    background: rgba(0, 229, 255, 0.1);
+    color: var(--cyan);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+  .rewrite-text {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.75;
+  }
+  .integrated-keywords {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: rgba(16, 217, 160, 0.06);
+    border: 1px solid rgba(16, 217, 160, 0.2);
+    border-radius: 10px;
+  }
+  .integrated-keywords-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--green);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .modal-foot {
+    padding: 14px 28px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: flex-end; gap: 10px;
+    background: rgba(0, 0, 0, 0.3);
+  }
+  .btn-ghost {
+    padding: 10px 18px; font-size: 13px; font-weight: 600;
+    background: transparent; color: var(--muted2);
+    border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .btn-ghost:hover { background: var(--surface3); color: var(--text); }
+  .btn-copy {
+    padding: 10px 18px; font-size: 13px; font-weight: 700;
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    color: #000; border: 0; border-radius: 8px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 0 16px rgba(0, 229, 255, 0.3);
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-copy:hover { transform: translateY(-1px); box-shadow: 0 0 22px rgba(0, 229, 255, 0.5); }
+  .btn-copy.copied { background: var(--green); color: #000; box-shadow: 0 0 16px rgba(16, 217, 160, 0.4); }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+  .footer-meta {
+    text-align: center;
+    padding: 32px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .footer-meta span { color: var(--cyan); }
+
+  /* ===== FEATURE BUTTONS BAR ===== */
+  .feature-bar {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  .feature-bar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--muted);
+    letter-spacing: 0.2em; text-transform: uppercase;
+    display: flex; align-items: center;
+    margin-right: 6px; white-space: nowrap;
+  }
+  .btn-feature {
+    padding: 9px 16px; font-size: 12px; font-weight: 600;
+    border-radius: 8px; cursor: pointer; border: 1px solid;
+    display: flex; align-items: center; gap: 7px;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-feature:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-feature.cyan {
+    background: rgba(0,229,255,0.08); color: var(--cyan);
+    border-color: rgba(0,229,255,0.3);
+  }
+  .btn-feature.cyan:hover:not(:disabled) { background: rgba(0,229,255,0.15); border-color: var(--cyan); }
+  .btn-feature.purple {
+    background: rgba(167,139,250,0.08); color: var(--purple);
+    border-color: rgba(167,139,250,0.3);
+  }
+  .btn-feature.purple:hover:not(:disabled) { background: rgba(167,139,250,0.15); border-color: var(--purple); }
+  .btn-feature.green {
+    background: rgba(16,217,160,0.08); color: var(--green);
+    border-color: rgba(16,217,160,0.3);
+  }
+  .btn-feature.green:hover:not(:disabled) { background: rgba(16,217,160,0.15); border-color: var(--green); }
+  .btn-feature.gold {
+    background: rgba(251,191,36,0.08); color: var(--gold);
+    border-color: rgba(251,191,36,0.3);
+  }
+  .btn-feature.gold:hover:not(:disabled) { background: rgba(251,191,36,0.15); border-color: var(--gold); }
+  .btn-feature.loading { opacity: 0.7; pointer-events: none; }
+
+  /* ===== HISTORY MODAL ===== */
+  .history-empty {
+    text-align: center; padding: 48px 24px;
+    color: var(--muted); font-size: 14px;
+  }
+  .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 440px; overflow-y: auto; }
+  .history-item {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 18px;
+    display: flex; align-items: center; gap: 16px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .history-item:hover { border-color: var(--border-strong); background: var(--surface3); }
+  .history-score-badge {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800;
+    flex-shrink: 0;
+  }
+  .history-info { flex: 1; min-width: 0; }
+  .history-job { font-size: 13px; font-weight: 600; color: var(--text-bright); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+  .history-date { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.08em; }
+  .history-del {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .history-del:hover { background: rgba(248,113,113,0.1); color: var(--red); border-color: rgba(248,113,113,0.3); }
+
+  /* ===== REWRITE MODAL ===== */
+  .rewrite-loading {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 40px 24px; gap: 16px;
+  }
+  .rewrite-loading-text { font-size: 13px; color: var(--cyan); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+  .rewrite-sections { display: flex; flex-direction: column; gap: 14px; max-height: 420px; overflow-y: auto; }
+  .rewrite-section-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px;
+  }
+  .rewrite-section-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    color: var(--cyan); letter-spacing: 0.2em; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .rewrite-section-text { font-size: 13px; color: var(--text); line-height: 1.65; white-space: pre-wrap; }
+  .rewrite-no-key {
+    text-align: center; padding: 32px 24px;
+    font-size: 13px; color: var(--muted2); line-height: 1.6;
+  }
+  .rewrite-no-key a { color: var(--cyan); text-decoration: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+// ============== ICONS ==============
+const Icon = ({ name, size=20, className="" }) => {
+  const icons = {
+    target: <><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>,
+    trending: <><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></>,
+    sparkles: <><path d="M12 3l1.9 5.8L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-2.2L12 3z"/><path d="M5 3v4M3 5h4M19 17v4M17 19h4"/></>,
+    award: <><circle cx="12" cy="8" r="6"/><polyline points="15.5 12.5 17 22 12 19 7 22 8.5 12.5"/></>,
+    x: <><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></>,
+    check: <><polyline points="20 6 9 17 4 12"/></>,
+    checkCircle: <><circle cx="12" cy="12" r="10"/><polyline points="9 12 12 15 16 10"/></>,
+    shield: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>,
+    alert: <><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></>,
+    arrow: <><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>,
+    arrowLeft: <><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>,
+    refresh: <><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></>,
+    copy: <><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></>,
+    close: <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+    zap: <><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>,
+    upload: <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></>,
+    file: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></>,
+    briefcase: <><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></>,
+    chevron: <><polyline points="6 9 12 15 18 9"/></>,
+    cpu: <><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="2" x2="9" y2="4"/><line x1="15" y1="2" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="22"/><line x1="15" y1="20" x2="15" y2="22"/><line x1="20" y1="9" x2="22" y2="9"/><line x1="20" y1="14" x2="22" y2="14"/><line x1="2" y1="9" x2="4" y2="9"/><line x1="2" y1="14" x2="4" y2="14"/></>,
+    edit: <><path d="M12 20h9M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z"/></>,
+  };
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {icons[name]}
+    </svg>
+  );
+};
+
+// ============== I18N ==============
+const i18n = {
+  pt: {
+    appName: "ATS Analyzer", appTag: "AI · POWERED",
+    newAnalysis: "Nova análise",
+    heroTag: "ANÁLISE DE ADERÊNCIA · IA",
+    heroTitleA: "Compare seu currículo com a vaga",
+    heroTitleB: "em segundos",
+    heroDesc: "Upload do CV em PDF ou Word, cole a vaga, e receba uma análise semântica completa com pontuação, gaps e plano de adaptação.",
+    cvLabel: "CURRÍCULO · CV",
+    cvTitle: "Seu currículo",
+    jdLabel: "VAGA · JOB DESCRIPTION",
+    jdTitle: "Descrição da vaga",
+    uploadCV: "Solte seu currículo aqui",
+    uploadCVSub: "PDF ou Word · até 5MB",
+    formats: ["PDF", "DOCX", "DOC"],
+    or: "OU",
+    pasteText: "Colar texto direto",
+    cvPastePlaceholder: "Cole o texto do seu currículo aqui...",
+    jdPlaceholder: "Cole a descrição completa da vaga: requisitos, atividades, diferenciais, tecnologias mencionadas...",
+    extracting: "Extraindo texto...",
+    extracted: "extraído",
+    extractError: "Não consegui extrair o texto deste arquivo.",
+    cvLoadedTitle: "Currículo carregado",
+    runAnalysis: "EXECUTAR ANÁLISE",
+    optionalConfig: "Configuração opcional · IA real (Anthropic API)",
+    apiKeyLabel: "ANTHROPIC API KEY",
+    apiKeyHelp: "Opcional. Sem chave, usa análise semântica embutida. Com chave, usa Claude para análise mais profunda. Obtenha em",
+    processingTitle: "Analisando aderência",
+    processingSteps: ["Extraindo entidades do currículo...", "Decompondo requisitos da vaga...", "Match semântico de competências...", "Calculando aderência regulatória...", "Gerando plano de adaptação..."],
+    backToInputs: "Voltar",
+    runDate: "ANÁLISE",
+    compatibility: "COMPATIBILIDADE",
+    potential: "DO POTENCIAL",
+    requirements: "REQUISITOS",
+    experience: "EXPERIÊNCIA",
+    terms: "TERMOS",
+    education: "FORMAÇÃO",
+    criteria: "DO CRITÉRIO",
+    readingJob: "LEITURA DA VAGA",
+    maxPriority: "PRIORIDADE MÁXIMA",
+    attentionPoints: "Pontos de atenção",
+    positiveSignals: "SINAIS POSITIVOS",
+    strengths: "Pontos fortes",
+    jobLanguage: "LINGUAGEM DA VAGA",
+    jobTerms: "Termos da vaga",
+    coverage: "COBERTURA",
+    presentInResume: "PRESENTES NO CURRÍCULO",
+    absentInResume: "AUSENTES OU POUCO EXPLÍCITOS",
+    presentDesc: "Termos da vaga já presentes no seu CV.",
+    absentDesc: "Termos importantes que ainda precisam aparecer.",
+    nextStep: "PRÓXIMO PASSO",
+    adaptCVTitle: "Transforme essa análise em um currículo otimizado para a vaga",
+    adaptCVDesc: "Use os gaps identificados para gerar um parágrafo executivo de resumo profissional que integra os termos ausentes ao seu histórico real.",
+    adaptCVBtn: "Adaptar CV à vaga",
+    testAnotherJob: "Testar outra vaga",
+    optimizerTitle: "Resumo Otimizado",
+    optimizerDesc: "Texto corrido em formato executivo, integrando os termos ausentes do JD ao seu histórico real.",
+    optimizerTag: "EXECUTIVE TONE",
+    integratedKeywords: "TERMOS INTEGRADOS",
+    copyText: "Copiar",
+    copied: "Copiado!",
+    close: "Fechar",
+    footer: "ATS ANALYZER · POWERED BY SMART SEMANTIC AI",
+    btnAiAnalysis: "Análise com IA",
+    btnHistory: "Histórico",
+    btnRewrite: "Reescrever CV",
+    btnExportPdf: "Exportar PDF",
+    featureActions: "AÇÕES",
+    historyTitle: "Histórico de análises",
+    historyEmpty: "Nenhuma análise salva ainda.",
+    historyLoad: "Carregar",
+    historyDelete: "Excluir",
+    historyClear: "Limpar tudo",
+    rewriteTitle: "Reescrita do CV com IA",
+    rewriteDesc: "Claude reescreve as seções do seu CV para maximizar aderência à vaga.",
+    rewriteLoading: "Claude está reescrevendo seu CV...",
+    rewriteNoKey: "Insira sua Anthropic API Key na seção de configuração para usar a reescrita com IA.",
+    rewriteSection1: "RESUMO PROFISSIONAL",
+    rewriteSection2: "ADAPTAÇÕES SUGERIDAS",
+    rewriteSection3: "PALAVRAS-CHAVE A INCLUIR",
+    aiAnalysisLoading: "Claude está analisando...",
+    aiAnalysisBadge: "ANÁLISE COM CLAUDE AI",
+    pdfExporting: "Gerando PDF...",
+    statusHigh: "ALTA ADERÊNCIA",
+    statusMid: "ADERÊNCIA MÉDIA",
+    statusLow: "BAIXA ADERÊNCIA",
+    riskLow: "RISCO BAIXO",
+    riskMid: "RISCO MÉDIO",
+    riskHigh: "RISCO ALTO",
+    summaryHigh: "Como seu currículo se posiciona nessa vaga",
+    summaryHighDesc: "Análise semântica revela forte alinhamento. Pequenos ajustes podem elevar ainda mais a aderência ao ATS.",
+    summaryMidDesc: "Análise revela aderência parcial. Ajustes específicos nos termos ausentes podem aumentar significativamente a triagem.",
+    summaryLowDesc: "Análise revela gaps importantes. É necessário trabalho de fundo no CV ou considerar vagas mais alinhadas ao perfil.",
+  },
+  en: {
+    appName: "ATS Analyzer", appTag: "AI · POWERED",
+    newAnalysis: "New analysis",
+    heroTag: "MATCH ANALYSIS · AI",
+    heroTitleA: "Compare your resume to the job",
+    heroTitleB: "in seconds",
+    heroDesc: "Upload your CV (PDF or Word), paste the job, and receive a full semantic analysis with score, gaps and adaptation plan.",
+    cvLabel: "RESUME · CV",
+    cvTitle: "Your resume",
+    jdLabel: "JOB · DESCRIPTION",
+    jdTitle: "Job description",
+    uploadCV: "Drop your resume here",
+    uploadCVSub: "PDF or Word · up to 5MB",
+    formats: ["PDF", "DOCX", "DOC"],
+    or: "OR",
+    pasteText: "Paste text instead",
+    cvPastePlaceholder: "Paste your resume text here...",
+    jdPlaceholder: "Paste the full job description: requirements, activities, differentials, technologies mentioned...",
+    extracting: "Extracting text...",
+    extracted: "extracted",
+    extractError: "Could not extract text from this file.",
+    cvLoadedTitle: "Resume loaded",
+    runAnalysis: "RUN ANALYSIS",
+    optionalConfig: "Optional · Real AI (Anthropic API)",
+    apiKeyLabel: "ANTHROPIC API KEY",
+    apiKeyHelp: "Optional. Without a key, uses built-in semantic analysis. With key, uses Claude for deeper analysis. Get one at",
+    processingTitle: "Analyzing match",
+    processingSteps: ["Extracting resume entities...", "Decomposing job requirements...", "Semantic skill matching...", "Calculating regulatory fit...", "Generating adaptation plan..."],
+    backToInputs: "Back",
+    runDate: "ANALYSIS",
+    compatibility: "COMPATIBILITY",
+    potential: "OF POTENTIAL",
+    requirements: "REQUIREMENTS",
+    experience: "EXPERIENCE",
+    terms: "TERMS",
+    education: "EDUCATION",
+    criteria: "OF CRITERION",
+    readingJob: "JOB READING",
+    maxPriority: "TOP PRIORITY",
+    attentionPoints: "Attention points",
+    positiveSignals: "POSITIVE SIGNALS",
+    strengths: "Strengths",
+    jobLanguage: "JOB LANGUAGE",
+    jobTerms: "Job terms",
+    coverage: "COVERAGE",
+    presentInResume: "PRESENT IN RESUME",
+    absentInResume: "MISSING OR UNCLEAR",
+    presentDesc: "Job terms already present in your CV.",
+    absentDesc: "Important terms still need to appear.",
+    nextStep: "NEXT STEP",
+    adaptCVTitle: "Turn this analysis into a resume optimized for the job",
+    adaptCVDesc: "Use the identified gaps to generate an executive summary paragraph that integrates missing terms into your real background.",
+    adaptCVBtn: "Adapt CV to job",
+    testAnotherJob: "Test another job",
+    optimizerTitle: "Optimized Summary",
+    optimizerDesc: "Running text in executive format, integrating missing JD terms into your real background.",
+    optimizerTag: "EXECUTIVE TONE",
+    integratedKeywords: "INTEGRATED TERMS",
+    copyText: "Copy",
+    copied: "Copied!",
+    close: "Close",
+    footer: "ATS ANALYZER · POWERED BY SMART SEMANTIC AI",
+    btnAiAnalysis: "AI Analysis",
+    btnHistory: "History",
+    btnRewrite: "Rewrite CV",
+    btnExportPdf: "Export PDF",
+    featureActions: "ACTIONS",
+    historyTitle: "Analysis history",
+    historyEmpty: "No saved analyses yet.",
+    historyLoad: "Load",
+    historyDelete: "Delete",
+    historyClear: "Clear all",
+    rewriteTitle: "CV Rewrite with AI",
+    rewriteDesc: "Claude rewrites your CV sections to maximize job match.",
+    rewriteLoading: "Claude is rewriting your CV...",
+    rewriteNoKey: "Enter your Anthropic API Key in the configuration section to use AI rewriting.",
+    rewriteSection1: "PROFESSIONAL SUMMARY",
+    rewriteSection2: "SUGGESTED ADAPTATIONS",
+    rewriteSection3: "KEYWORDS TO INCLUDE",
+    aiAnalysisLoading: "Claude is analyzing...",
+    aiAnalysisBadge: "ANALYZED BY CLAUDE AI",
+    pdfExporting: "Generating PDF...",
+    statusHigh: "HIGH MATCH",
+    statusMid: "MEDIUM MATCH",
+    statusLow: "LOW MATCH",
+    riskLow: "LOW RISK",
+    riskMid: "MEDIUM RISK",
+    riskHigh: "HIGH RISK",
+    summaryHigh: "How your resume positions for this job",
+    summaryHighDesc: "Semantic analysis reveals strong alignment. Small adjustments can further increase ATS adherence.",
+    summaryMidDesc: "Analysis reveals partial alignment. Specific adjustments to missing terms can significantly increase screening.",
+    summaryLowDesc: "Analysis reveals important gaps. Substantial CV rework or considering more aligned jobs is needed.",
+  }
+};
+
+// ============== KEYWORD TAXONOMY (for smart semantic matching) ==============
+const TAXONOMY = [
+  // AI / GenAI - high weight
+  { id: 'ai_genai', label: 'IA Generativa', labelEn: 'Generative AI', cat: 'requirements', weight: 10,
+    patterns: ['ia generativa', 'generative ai', 'genai', 'gemini', 'claude', 'chatgpt', 'gpt', 'watsonx', 'watson.x', 'notebooklm', 'perplexity', 'rovo', 'llm', 'large language model', 'fine-tuning', 'rag', 'copilot', 'ai enablement', 'open claude'] },
+  { id: 'ai_ml', label: 'Machine Learning', labelEn: 'Machine Learning', cat: 'requirements', weight: 6,
+    patterns: ['machine learning', 'ml ', 'aprendizado de máquina', 'ia aplicada', 'ai applied', 'inteligência artificial', 'artificial intelligence', 'ia,', 'ai,', 'neural', 'deep learning', 'nlp', 'analytics preditivo', 'predictive analytics'] },
+  { id: 'ai_arch', label: 'Arquitetura de IA', labelEn: 'AI Architecture', cat: 'requirements', weight: 5,
+    patterns: ['arquitetura de ia', 'ai architecture', 'arquitetura de soluções', 'solution architecture', 'governança de ia', 'ai governance', 'governança cognitiva', 'ai enablement', 'casos de uso de ia', 'ai use cases', 'casos de uso'] },
+  // Cloud
+  { id: 'aws', label: 'AWS', labelEn: 'AWS', cat: 'requirements', weight: 4,
+    patterns: ['aws', 'amazon web services'] },
+  { id: 'cloud_other', label: 'Cloud (Azure/GCP)', labelEn: 'Cloud', cat: 'requirements', weight: 3,
+    patterns: ['azure', 'gcp', 'google cloud', 'cloud computing', 'nuvem', 'migração cloud'] },
+  { id: 'databricks', label: 'Databricks', labelEn: 'Databricks', cat: 'requirements', weight: 3,
+    patterns: ['databricks', 'data lake', 'spark', 'lakehouse'] },
+  // Data
+  { id: 'data_analytics', label: 'Data Analytics', labelEn: 'Data Analytics', cat: 'requirements', weight: 4,
+    patterns: ['power bi', 'tableau', 'looker', 'data analytics', 'análise de dados', 'data mining', 'business intelligence', 'eazybi', 'easybi', 'sql', 'python', 'data-driven', 'estatística', 'kpi', 'kpis', 'okr', 'okrs'] },
+  // PM / Agile
+  { id: 'agile', label: 'Metodologias Ágeis', labelEn: 'Agile Methodologies', cat: 'requirements', weight: 4,
+    patterns: ['safe', 'scrum', 'kanban', 'agile', 'ágil', 'agilidade', 'pmp', 'pmo', 'okr', 'sprint', 'pi planning', 'lean', 'kaizen', 'discovery', 'delivery'] },
+  { id: 'product', label: 'Product Management', labelEn: 'Product Management', cat: 'requirements', weight: 3,
+    patterns: ['product owner', 'product manager', 'gestão de produto', 'roadmap', 'backlog', 'priorização', 'casos de uso', 'po/pm', 'popm'] },
+  // Leadership / Stakeholders
+  { id: 'leadership', label: 'Liderança', labelEn: 'Leadership', cat: 'experience', weight: 5,
+    patterns: ['liderança', 'leadership', 'lider', 'liderar', 'gestão', 'management', 'team lead', 'gerência'] },
+  { id: 'stakeholder', label: 'Stakeholders', labelEn: 'Stakeholders', cat: 'experience', weight: 4,
+    patterns: ['stakeholder', 'stakeholders', 'partes interessadas', 'c-level', 'alta liderança', 'senior leadership', 'executiva', 'executive', 'diretoria', 'board'] },
+  { id: 'cross_func', label: 'Cross-functional', labelEn: 'Cross-functional', cat: 'experience', weight: 3,
+    patterns: ['multidisciplinar', 'multidisciplinares', 'cross-functional', 'transversal', 'transversais', 'multifuncional'] },
+  { id: 'transformation', label: 'Transformação Digital', labelEn: 'Digital Transformation', cat: 'experience', weight: 4,
+    patterns: ['transformação digital', 'digital transformation', 'modernização', 'modernization', 'change management', 'mudança cultural'] },
+  // Compliance / Regulated
+  { id: 'compliance', label: 'Compliance', labelEn: 'Compliance', cat: 'requirements', weight: 4,
+    patterns: ['compliance', 'conformidade', 'regulado', 'regulated', 'regulatório', 'regulatory', 'lgpd', 'gdpr', 'segurança da informação', 'information security', 'governança', 'governance'] },
+  { id: 'regulated_env', label: 'Ambientes Regulados', labelEn: 'Regulated Environments', cat: 'experience', weight: 4,
+    patterns: ['susep', 'ans', 'bacen', 'cvm', 'banco central', 'detran', 'seguradora', 'insurance', 'financeiro', 'mercado financeiro', 'institucional', 'regulado', 'institutional'] },
+  // Communication
+  { id: 'communication', label: 'Comunicação Executiva', labelEn: 'Executive Communication', cat: 'experience', weight: 3,
+    patterns: ['comunicação', 'communication', 'tradução', 'translate', 'ponte', 'bridge', 'apresentação executiva', 'reporte', 'reporting'] },
+  // Education / Certifications
+  { id: 'edu_higher', label: 'Ensino Superior', labelEn: 'Higher Education', cat: 'education', weight: 3,
+    patterns: ['graduação', 'graduado', 'graduation', 'bachelor', 'engenharia', 'engineering', 'ciência da computação', 'computer science', 'sistemas de informação', 'administração', 'administration', 'economia', 'economics'] },
+  { id: 'edu_post', label: 'Pós-graduação', labelEn: 'Postgraduate', cat: 'education', weight: 3,
+    patterns: ['pós-graduação', 'pos-graduacao', 'mestrado', 'master', 'mba', 'especialização', 'doctorate', 'phd', 'doutorado'] },
+  { id: 'cert_pm', label: 'Cert. PM', labelEn: 'PM Cert.', cat: 'education', weight: 2,
+    patterns: ['pmp', 'csm', 'cspo', 'pspo', 'safe', 'scrum master', 'pmi', 'pm3'] },
+  { id: 'cert_ai', label: 'Cert. IA', labelEn: 'AI Cert.', cat: 'education', weight: 2,
+    patterns: ['watsonx certification', 'watson.x', 'azure ai', 'aws ai', 'google ai', 'genai cert', 'machine learning cert'] },
+];
+
+// ============== UTILS ==============
+function normalize(text) {
+  return (text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function countPatternMatches(text, patterns) {
+  const norm = normalize(text);
+  let count = 0;
+  const matched = [];
+  for (const p of patterns) {
+    const np = normalize(p);
+    if (norm.includes(np)) {
+      count++;
+      matched.push(p);
+    }
+  }
+  return { count, matched };
+}
+
+function getScoreColor(s) { return s < 50 ? '#f87171' : s < 70 ? '#fbbf24' : '#10d9a0'; }
+function getScoreClass(s) { return s < 50 ? 'low' : s < 70 ? 'mid' : 'high'; }
+function getMetricColor(pct) { return pct < 50 ? 'red' : pct < 70 ? 'gold' : 'green'; }
+
+// ============== SMART SEMANTIC ANALYZER ==============
+function smartAnalyze(cvText, jdText, lang) {
+  // Step 1: Identify which categories the JD requires
+  const jdMatches = {};
+  for (const tax of TAXONOMY) {
+    const r = countPatternMatches(jdText, tax.patterns);
+    if (r.count > 0) jdMatches[tax.id] = r;
+  }
+
+  // Step 2: Check which of those categories the CV covers
+  const cvMatches = {};
+  for (const tax of TAXONOMY) {
+    const r = countPatternMatches(cvText, tax.patterns);
+    cvMatches[tax.id] = r;
+  }
+
+  // Step 3: Compute scores per macro-category
+  let reqScore = 0, reqMax = 0;
+  let expScore = 0, expMax = 0;
+  let eduScore = 0, eduMax = 0;
+
+  const categoryStatus = {};
+
+  for (const tax of TAXONOMY) {
+    const required = !!jdMatches[tax.id];
+    const cvHas = cvMatches[tax.id].count > 0;
+    const cvStrength = Math.min(cvMatches[tax.id].count, 4) / 4; // 0..1
+
+    const targetCategory = tax.cat;
+    if (!required) {
+      // Not required by JD; still count partial credit if CV has it as bonus
+      if (targetCategory === 'requirements') reqMax += 0;
+      if (targetCategory === 'experience') expMax += 0;
+      if (targetCategory === 'education') eduMax += 0;
+      continue;
+    }
+
+    // It's required
+    if (targetCategory === 'requirements') reqMax += tax.weight;
+    if (targetCategory === 'experience') expMax += tax.weight;
+    if (targetCategory === 'education') eduMax += tax.weight;
+
+    const earned = cvHas ? Math.round(tax.weight * (0.65 + 0.35 * cvStrength)) : 0;
+    if (targetCategory === 'requirements') reqScore += earned;
+    if (targetCategory === 'experience') expScore += earned;
+    if (targetCategory === 'education') eduScore += earned;
+
+    categoryStatus[tax.id] = { required, cvHas, earned, max: tax.weight, label: lang === 'pt' ? tax.label : tax.labelEn, cvStrength };
+  }
+
+  // Cap scores and normalize
+  // Map raw category scores to fixed denominators (40, 30, 20, 10)
+  const reqPct = reqMax > 0 ? Math.min(100, Math.round((reqScore / reqMax) * 100)) : 60;
+  const expPct = expMax > 0 ? Math.min(100, Math.round((expScore / expMax) * 100)) : 60;
+  const eduPct = eduMax > 0 ? Math.min(100, Math.round((eduScore / eduMax) * 100)) : 60;
+
+  const reqVal = Math.round((reqPct / 100) * 40);
+  const expVal = Math.round((expPct / 100) * 30);
+  const eduVal = Math.round((eduPct / 100) * 10);
+
+  // Terms: vocabulary overlap (different metric)
+  // Count unique top JD terms that appear in CV
+  const jdTaxIds = Object.keys(jdMatches);
+  const matchedTaxIds = jdTaxIds.filter(id => cvMatches[id].count > 0);
+  const termsRatio = jdTaxIds.length > 0 ? matchedTaxIds.length / jdTaxIds.length : 0.7;
+  const termsPct = Math.round(termsRatio * 100);
+  const termsVal = Math.round(termsRatio * 20);
+
+  const score = Math.min(100, reqVal + expVal + termsVal + eduVal);
+
+  // Build present/missing keyword lists
+  const present = [];
+  const missing = [];
+  for (const taxId of jdTaxIds) {
+    const tax = TAXONOMY.find(t => t.id === taxId);
+    const label = lang === 'pt' ? tax.label : tax.labelEn;
+    if (cvMatches[taxId].count > 0) {
+      present.push(label);
+    } else {
+      missing.push(label);
+    }
+  }
+
+  // Build alerts (missing items, high impact first)
+  const missingTax = jdTaxIds
+    .filter(id => cvMatches[id].count === 0)
+    .map(id => TAXONOMY.find(t => t.id === id))
+    .sort((a, b) => b.weight - a.weight);
+
+  const alerts = missingTax.slice(0, 4).map((tax, i) => {
+    const label = lang === 'pt' ? tax.label : tax.labelEn;
+    return {
+      num: lang === 'pt' ? `FALHA 0${i+1}` : `GAP 0${i+1}`,
+      text: lang === 'pt'
+        ? `Falta evidência clara de ${label} no currículo. A vaga menciona explicitamente esse tema.`
+        : `Missing clear evidence of ${label} in the resume. The job explicitly mentions this topic.`
+    };
+  });
+
+  if (alerts.length === 0) {
+    alerts.push({
+      num: lang === 'pt' ? 'OBSERVAÇÃO' : 'NOTE',
+      text: lang === 'pt'
+        ? 'Currículo bem alinhado à vaga. Refinamentos de linguagem ainda podem otimizar a triagem ATS.'
+        : 'Resume well-aligned to the job. Language refinements can still optimize ATS screening.'
+    });
+  }
+
+  // Strengths (top categories with strong matches)
+  const presentTax = jdTaxIds
+    .filter(id => cvMatches[id].count > 0)
+    .map(id => ({ ...TAXONOMY.find(t => t.id === id), strength: cvMatches[id].count }))
+    .sort((a, b) => b.weight * b.strength - a.weight * a.strength);
+
+  const strengths = presentTax.slice(0, 4).map(tax => {
+    const label = lang === 'pt' ? tax.label : tax.labelEn;
+    if (tax.strength >= 3) {
+      return lang === 'pt'
+        ? `Forte cobertura em ${label} — múltiplas evidências no currículo.`
+        : `Strong coverage in ${label} — multiple evidences in the resume.`;
+    }
+    return lang === 'pt'
+      ? `Boa presença de ${label} no histórico profissional.`
+      : `Good presence of ${label} in professional history.`;
+  });
+
+  // Build the optimizer / adapted summary
+  const presentLabels = present.slice(0, 4).join(', ');
+  const missingLabels = missing.slice(0, 3).join(', ');
+
+  const optimizerSuggestion = lang === 'pt'
+    ? `Profissional sênior com sólida trajetória em liderança de transformação digital em ambientes corporativos regulados, consolidando expertise progressiva em ${presentLabels}, com atuação direta na ponte entre tecnologia, áreas de negócio e alta liderança. ${missing.length > 0 ? `Atuação estratégica integrando ${missingLabels} para estruturação, avaliação e priorização de casos de uso de alto impacto, alinhados a objetivos institucionais e geração de valor mensurável. ` : ''}Coordenação de projetos transversais com múltiplos stakeholders, governança técnica responsável sob frameworks como SAFe, Scrum e Kanban, aderência a SLOs de performance e arquitetura de soluções com foco em ROI operacional e maturidade organizacional.`
+    : `Senior professional with solid digital transformation leadership track record in regulated corporate environments, consolidating progressive expertise in ${presentLabels}, with direct action as a bridge between technology, business areas and senior leadership. ${missing.length > 0 ? `Strategic action integrating ${missingLabels} for structuring, evaluating and prioritizing high-impact use cases, aligned with institutional objectives and measurable value generation. ` : ''}Coordination of cross-functional projects with multiple stakeholders, responsible technical governance under frameworks like SAFe, Scrum and Kanban, adherence to performance SLOs and solution architecture focused on operational ROI and organizational maturity.`;
+
+  // Job title extraction
+  const firstLine = (jdText.split('\n').find(l => l.trim().length > 5) || '').trim();
+  let jobTitle = firstLine.length > 70 ? firstLine.slice(0, 67) + '...' : firstLine;
+  const titleMatch = jdText.match(/Buscamos um[a]?\s+([^,\.\n]+)/i)
+    || jdText.match(/We[\'']?re looking for\s+([^,\.\n]+)/i)
+    || jdText.match(/Vaga\s+(?:de|para)\s+([^,\.\n]+)/i);
+  if (titleMatch) jobTitle = titleMatch[1].trim().slice(0, 70);
+
+  return {
+    score,
+    jobTitle: jobTitle || (lang === 'pt' ? 'Vaga' : 'Job'),
+    timestamp: Date.now(),
+    metrics: {
+      requirements: { val: reqVal, total: 40, pct: Math.round((reqVal/40)*100), label: lang === 'pt' ? 'Requisitos' : 'Requirements', desc: lang === 'pt' ? 'Cobertura dos requisitos centrais da vaga.' : 'Coverage of central job requirements.', color: getMetricColor((reqVal/40)*100) },
+      experience: { val: expVal, total: 30, pct: Math.round((expVal/30)*100), label: lang === 'pt' ? 'Experiência' : 'Experience', desc: lang === 'pt' ? 'Maturidade profissional alinhada à vaga.' : 'Professional maturity aligned with the job.', color: getMetricColor((expVal/30)*100) },
+      terms: { val: termsVal, total: 20, pct: termsPct, label: lang === 'pt' ? 'Termos' : 'Terms', desc: lang === 'pt' ? 'Vocabulário do CV alinhado à vaga.' : 'CV vocabulary aligned with the job.', color: getMetricColor(termsPct) },
+      education: { val: eduVal, total: 10, pct: Math.round((eduVal/10)*100), label: lang === 'pt' ? 'Formação' : 'Education', desc: lang === 'pt' ? 'Formação e certificações pertinentes.' : 'Relevant education and certifications.', color: getMetricColor((eduVal/10)*100) }
+    },
+    alerts,
+    strengths,
+    keywords: { present, missing },
+    keywordsDesc: lang === 'pt'
+      ? `Match semântico entre ${jdTaxIds.length} categorias-chave da vaga e o conteúdo do currículo. ${matchedTaxIds.length} categorias presentes, ${jdTaxIds.length - matchedTaxIds.length} ausentes.`
+      : `Semantic match between ${jdTaxIds.length} key job categories and CV content. ${matchedTaxIds.length} categories present, ${jdTaxIds.length - matchedTaxIds.length} missing.`,
+    optimizerSuggestion,
+    integratedTerms: missing.slice(0, 5)
+  };
+}
+
+// ============== FILE EXTRACTION ==============
+async function extractText(file) {
+  const ext = file.name.toLowerCase().split('.').pop();
+  if (ext === 'pdf') return extractPdfText(file);
+  if (ext === 'docx' || ext === 'doc') return extractDocxText(file);
+  if (ext === 'txt') return file.text();
+  throw new Error('Formato não suportado');
+}
+
+async function extractPdfText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const pdf = await window.pdfjsLib.getDocument({ data: e.target.result }).promise;
+        let text = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const tc = await page.getTextContent();
+          text += tc.items.map(it => it.str).join(' ') + '\n\n';
+        }
+        if (text.trim().length < 50) reject(new Error('PDF sem texto extraível (pode ser scan).'));
+        else resolve(text.trim());
+      } catch (err) { reject(err); }
+    };
+    reader.onerror = () => reject(new Error('Falha na leitura'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+async function extractDocxText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const result = await window.mammoth.extractRawText({ arrayBuffer: e.target.result });
+        if (result.value && result.value.trim().length >= 50) {
+          resolve(result.value.trim());
+        } else {
+          reject(new Error('Documento sem texto extraível.'));
+        }
+      } catch (err) { reject(err); }
+    };
+    reader.onerror = () => reject(new Error('Falha na leitura'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+// ============== DONUT ==============
+function Donut({ pct, size=200, stroke=14, color, showValue, value, valueSize, label }) {
+  const radius = (size - stroke) / 2;
+  const circ = 2 * Math.PI * radius;
+  const [progress, setProgress] = useState(0);
+  useEffect(() => { setTimeout(() => setProgress(pct), 100); }, [pct]);
+  const offset = circ - (progress / 100) * circ;
+  return (
+    <div style={{position:'relative', display:'inline-flex', alignItems:'center', justifyContent:'center', width:size, height:size}}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{transform:'rotate(-90deg)'}}>
+        <defs>
+          <filter id={`glow-${color.replace('#','')}`}>
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <circle cx={size/2} cy={size/2} r={radius} stroke="rgba(0, 229, 255, 0.08)" strokeWidth={stroke} fill="none"/>
+        <circle cx={size/2} cy={size/2} r={radius} stroke={color} strokeWidth={stroke} fill="none"
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+          filter={`url(#glow-${color.replace('#','')})`}
+          style={{ transition: 'stroke-dashoffset 1.4s cubic-bezier(0.4, 0, 0.2, 1)', filter: `drop-shadow(0 0 8px ${color})` }}/>
+      </svg>
+      {showValue && (
+        <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+          {label && <div style={{fontFamily:'JetBrains Mono, monospace', fontSize:9, color:'var(--muted)', letterSpacing:'0.18em', textTransform:'uppercase', marginBottom:4}}>{label}</div>}
+          <div className="display" style={{fontSize: valueSize || size/3.2, fontWeight:800, color:'var(--text-bright)', lineHeight:1, textShadow:`0 0 20px ${color}50`}}>
+            {value !== undefined ? value : pct}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MiniMetric({ value, total, color, label }) {
+  const pct = (value / total) * 100;
+  return (
+    <div className="mini-stat">
+      <Donut pct={pct} size={64} stroke={4} color={color} showValue value={value} valueSize={17}/>
+      <div className="mini-stat-label">{label}</div>
+    </div>
+  );
+}
+
+// ============== INPUT PAGE ==============
+function InputPage({ t, lang, onAnalyze, apiKey, setApiKey }) {
+  const [cvFile, setCvFile] = useState(null);
+  const [cvText, setCvText] = useState('');
+  const [cvMode, setCvMode] = useState('upload'); // 'upload' or 'paste'
+  const [cvDrag, setCvDrag] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+  const [extractError, setExtractError] = useState(null);
+  const [jdText, setJdText] = useState('');
+  const [showConfig, setShowConfig] = useState(false);
+  const cvInputRef = useRef(null);
+
+  useEffect(() => { localStorage.setItem('ats_mvp_key', apiKey); }, [apiKey]);
+
+  const handleCvFile = async (f) => {
+    if (!f) return;
+    if (f.size > 5 * 1024 * 1024) { alert('Máximo 5MB'); return; }
+    setCvFile(f);
+    setExtracting(true);
+    setExtractError(null);
+    setCvText('');
+    try {
+      const text = await extractText(f);
+      setCvText(text);
+    } catch (err) {
+      setExtractError(err.message || t.extractError);
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const removeFile = () => { setCvFile(null); setCvText(''); setExtractError(null); };
+
+  const canRun = cvText.trim().length >= 100 && jdText.trim().length >= 50;
+
+  return (
+    <div>
+      <div className="hero">
+        <div className="hero-tag">{t.heroTag}</div>
+        <h1 className="hero-title">
+          {t.heroTitleA}<br/>
+          <span className="gradient">{t.heroTitleB}</span>
+        </h1>
+        <p className="hero-desc">{t.heroDesc}</p>
+      </div>
+
+      <div className="input-grid">
+        <div className="ai-card input-card">
+          <div className="ai-card-corner tl"/><div className="ai-card-corner tr"/>
+          <div className="ai-card-corner bl"/><div className="ai-card-corner br"/>
+          <div className="input-head">
+            <div className="input-icon"><Icon name="file" size={18}/></div>
+            <div>
+              <div className="input-label">{t.cvLabel}</div>
+              <div className="input-title">{t.cvTitle}</div>
+            </div>
+          </div>
+
+          {cvMode === 'upload' && !cvFile && (
+            <>
+              <div className={`upload-zone ${cvDrag ? 'drag' : ''}`}
+                onClick={() => cvInputRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); setCvDrag(true); }}
+                onDragLeave={() => setCvDrag(false)}
+                onDrop={e => { e.preventDefault(); setCvDrag(false); handleCvFile(e.dataTransfer.files[0]); }}>
+                <div className="upload-icon-glow"><Icon name="upload" size={28}/></div>
+                <div className="upload-text">{t.uploadCV}</div>
+                <div className="upload-subtext">{t.uploadCVSub}</div>
+                <div className="upload-formats">
+                  {t.formats.map((f, i) => <span key={i} className="format-chip">{f}</span>)}
+                </div>
+                <input ref={cvInputRef} type="file" accept=".pdf,.docx,.doc,.txt" hidden
+                  onChange={e => handleCvFile(e.target.files[0])}/>
+              </div>
+              <div className="cv-or-paste">
+                <span>{t.or}</span>
+              </div>
+              <button className="paste-link" onClick={() => setCvMode('paste')}>
+                {t.pasteText} →
+              </button>
+            </>
+          )}
+
+          {cvMode === 'paste' && (
+            <>
+              <textarea className="text-input" placeholder={t.cvPastePlaceholder}
+                value={cvText} onChange={e => setCvText(e.target.value)}/>
+              <div className="cv-or-paste"><span>{t.or}</span></div>
+              <button className="paste-link" onClick={() => setCvMode('upload')}>← Upload arquivo</button>
+            </>
+          )}
+
+          {cvFile && (
+            <div className="file-loaded">
+              <div className="file-loaded-head">
+                <div className="file-loaded-icon"><Icon name="checkCircle" size={20}/></div>
+                <div className="file-loaded-info">
+                  <div className="file-loaded-name">{cvFile.name}</div>
+                  <div className="file-loaded-stats">
+                    <span>{formatFileSize(cvFile.size)}</span>
+                    {cvText && <span>{Math.round(cvText.length/1000)}k chars {t.extracted}</span>}
+                  </div>
+                </div>
+                <button className="file-loaded-remove" onClick={removeFile}><Icon name="close" size={14}/></button>
+              </div>
+              {extracting && (
+                <div className="extracting-status">
+                  <div className="spinner"/>
+                  <div className="extracting-text">{t.extracting}</div>
+                </div>
+              )}
+              {extractError && (
+                <div className="extracting-status extracting-error">
+                  <Icon name="alert" size={16}/>
+                  <div className="extracting-text">{extractError}</div>
+                </div>
+              )}
+              {cvText && !extracting && (
+                <div className="cv-preview">{cvText.slice(0, 800)}{cvText.length > 800 ? '...' : ''}</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="ai-card input-card">
+          <div className="ai-card-corner tl"/><div className="ai-card-corner tr"/>
+          <div className="ai-card-corner bl"/><div className="ai-card-corner br"/>
+          <div className="input-head">
+            <div className="input-icon"><Icon name="briefcase" size={18}/></div>
+            <div>
+              <div className="input-label">{t.jdLabel}</div>
+              <div className="input-title">{t.jdTitle}</div>
+            </div>
+          </div>
+          <textarea className="text-input" placeholder={t.jdPlaceholder}
+            value={jdText} onChange={e => setJdText(e.target.value)}/>
+        </div>
+      </div>
+
+      <div className="cta-section">
+        <button className="btn-primary-big" disabled={!canRun} onClick={() => onAnalyze(cvText, jdText, apiKey)}>
+          <Icon name="zap" size={18}/>
+          {t.runAnalysis}
+        </button>
+        <div className="config-collapsed">
+          <button className="config-toggle" onClick={() => setShowConfig(!showConfig)}>
+            <span className="config-toggle-left">
+              <Icon name="cpu" size={14}/>
+              {t.optionalConfig}
+              {apiKey && <span style={{color:'var(--green)', fontSize:11, fontFamily:'JetBrains Mono'}}>● ATIVO</span>}
+            </span>
+            <Icon name="chevron" size={14} style={{transform: showConfig ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s'}}/>
+          </button>
+          {showConfig && (
+            <div className="config-body">
+              <label>{t.apiKeyLabel}</label>
+              <input type="password" placeholder="sk-ant-..." value={apiKey} onChange={e => setApiKey(e.target.value)}/>
+              <div className="config-help">
+                {t.apiKeyHelp} <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============== PROCESSING ==============
+function ProcessingPage({ t }) {
+  const [stepIdx, setStepIdx] = useState(0);
+  const [progress, setProgress] = useState(15);
+  useEffect(() => {
+    const total = t.processingSteps.length;
+    const interval = setInterval(() => {
+      setStepIdx(prev => {
+        const next = Math.min(prev + 1, total - 1);
+        setProgress(((next + 1) / total) * 95);
+        return next;
+      });
+    }, 900);
+    return () => clearInterval(interval);
+  }, []);
+  return (
+    <div className="processing-screen">
+      <div className="ai-orb">
+        <div className="ai-orb-ring"/>
+        <div className="ai-orb-ring"/>
+        <div className="ai-orb-ring"/>
+        <div className="ai-orb-core"><Icon name="cpu" size={36}/></div>
+      </div>
+      <h2 className="processing-title">{t.processingTitle}</h2>
+      <div className="processing-step">{t.processingSteps[stepIdx]}</div>
+      <div className="processing-bar">
+        <div className="processing-bar-fill" style={{width: `${progress}%`}}/>
+      </div>
+    </div>
+  );
+}
+
+// ============== METRIC CARD ==============
+function MetricCard({ data, icon, t }) {
+  const COLORS = { red: '#f87171', green: '#10d9a0', gold: '#fbbf24' };
+  return (
+    <div className="metric-card">
+      <div className="metric-head">
+        <div>
+          <div className="metric-cat">{data.label.toUpperCase()}</div>
+          <div className="metric-name">{data.label}</div>
+        </div>
+        <div className={`metric-icon-box icon-${data.color}`}>
+          <Icon name={icon} size={16}/>
+        </div>
+      </div>
+      <div className="metric-body">
+        <Donut pct={data.pct} size={76} stroke={5} color={COLORS[data.color]} showValue value={data.val} valueSize={18} label={`/${data.total}`}/>
+        <p className="metric-desc">{data.desc}</p>
+      </div>
+      <div>
+        <div className="progress-track">
+          <div className={`progress-fill ${data.color}`} style={{width: `${data.pct}%`}}/>
+        </div>
+        <div className={`progress-label ${data.color}`}>{data.pct}% {t.criteria}</div>
+      </div>
+    </div>
+  );
+}
+
+// ============== ADAPT MODAL ==============
+function AdaptModal({ isOpen, onClose, t, suggestion, integratedTerms }) {
+  const [copied, setCopied] = useState(false);
+  if (!isOpen) return null;
+  const copy = () => {
+    navigator.clipboard.writeText(suggestion);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card" onClick={e => e.stopPropagation()}>
+        <div className="modal-head">
+          <div className="modal-icon"><Icon name="edit" size={20}/></div>
+          <div className="modal-text">
+            <div className="modal-tag">AI · OPTIMIZER</div>
+            <h3 className="modal-title">{t.optimizerTitle}</h3>
+            <p className="modal-desc">{t.optimizerDesc}</p>
+          </div>
+          <button className="modal-close" onClick={onClose}><Icon name="close" size={16}/></button>
+        </div>
+        <div className="modal-body">
+          <div className="rewrite-block">
+            <div className="rewrite-tag">{t.optimizerTag}</div>
+            <p className="rewrite-text">{suggestion}</p>
+          </div>
+          {integratedTerms && integratedTerms.length > 0 && (
+            <div className="integrated-keywords">
+              <div className="integrated-keywords-label">✦ {t.integratedKeywords}</div>
+              <div className="tags-wrap">
+                {integratedTerms.map((k, i) => <span key={i} className="tag tag-green">{k}</span>)}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="modal-foot">
+          <button className="btn-ghost" onClick={onClose}>{t.close}</button>
+          <button className={`btn-copy ${copied ? 'copied' : ''}`} onClick={copy}>
+            <Icon name={copied ? 'check' : 'copy'} size={14}/>
+            {copied ? t.copied : t.copyText}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============== RESULTS PAGE ==============
+function ResultsPage({ result, t, onBack, onNew, apiKey, cvText, jdText, onLoadHistory }) {
+  const [adaptOpen, setAdaptOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [rewriteOpen, setRewriteOpen] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const COLORS = { red: '#f87171', green: '#10d9a0', gold: '#fbbf24' };
+  const r = result;
+  const scoreColor = getScoreColor(r.score);
+  const scoreClass = getScoreClass(r.score);
+
+  const summaryDesc = r.score >= 70 ? t.summaryHighDesc : r.score >= 50 ? t.summaryMidDesc : t.summaryLowDesc;
+  const status = r.score >= 70 ? t.statusHigh : r.score >= 50 ? t.statusMid : t.statusLow;
+  const risk = r.score >= 70 ? t.riskLow : r.score >= 50 ? t.riskMid : t.riskHigh;
+
+  const handleExportPdf = () => {
+    setPdfLoading(true);
+    setTimeout(() => { exportPDF(r, t); setPdfLoading(false); }, 300);
+  };
+
+  return (
+    <div>
+      <div className="results-bar">
+        <div className="results-bar-left">
+          <button className="back-btn" onClick={onBack}><Icon name="arrowLeft" size={16}/></button>
+          <div>
+            <div className="results-meta">{t.runDate} · {new Date(r.timestamp).toLocaleString(t === i18n.pt ? 'pt-BR' : 'en-US')}{r.analyzedBy === 'claude' && <span style={{color:'var(--cyan)', marginLeft:8}}>● CLAUDE AI</span>}</div>
+            <div style={{fontFamily:'Syne', fontWeight:700, color:'var(--text-bright)', fontSize:14}}>{r.jobTitle}</div>
+          </div>
+        </div>
+        <div className="results-bar-right">
+          <button className="header-pill" onClick={onNew}>
+            <Icon name="refresh" size={14}/>
+            {t.newAnalysis}
+          </button>
+        </div>
+      </div>
+
+      {/* ===== FEATURE BUTTONS BAR ===== */}
+      <div className="feature-bar">
+        <span className="feature-bar-label">{t.featureActions}</span>
+        <button className={`btn-feature cyan ${aiLoading ? 'loading' : ''}`} disabled={!apiKey || !cvText || aiLoading}
+          onClick={async () => {
+            if (!apiKey || !cvText) return;
+            setAiLoading(true);
+            try {
+              const analysis = await claudeAnalyze(cvText, jdText, t === i18n.pt ? 'pt' : 'en', apiKey);
+              saveToHistory(analysis);
+              onLoadHistory(analysis);
+            } catch(e) { alert('Erro: ' + e.message); }
+            setAiLoading(false);
+          }}>
+          <Icon name="sparkles" size={14}/>
+          {aiLoading ? t.aiAnalysisLoading : t.btnAiAnalysis}
+        </button>
+        <button className="btn-feature purple" onClick={() => setHistoryOpen(true)}>
+          <Icon name="briefcase" size={14}/>
+          {t.btnHistory}
+        </button>
+        <button className={`btn-feature green ${rewriteOpen ? 'loading' : ''}`} onClick={() => setRewriteOpen(true)}>
+          <Icon name="edit" size={14}/>
+          {t.btnRewrite}
+        </button>
+        <button className={`btn-feature gold ${pdfLoading ? 'loading' : ''}`} onClick={handleExportPdf} disabled={pdfLoading}>
+          <Icon name="upload" size={14}/>
+          {pdfLoading ? t.pdfExporting : t.btnExportPdf}
+        </button>
+      </div>
+
+      <div className="ai-card">
+        <div className="ai-card-corner tl"/><div className="ai-card-corner tr"/>
+        <div className="ai-card-corner bl"/><div className="ai-card-corner br"/>
+        <div className="result-hero">
+          <div className="gauge-wrap">
+            <div className={`gauge-bg ${scoreClass}`}>
+              <Donut pct={r.score} size={220} stroke={12} color={scoreColor} showValue value={r.score} valueSize={64} label={t.compatibility}/>
+            </div>
+            <div className="mini-stats">
+              <MiniMetric value={r.metrics.requirements.val} total={r.metrics.requirements.total} color={COLORS[r.metrics.requirements.color]} label={t.requirements}/>
+              <MiniMetric value={r.metrics.experience.val} total={r.metrics.experience.total} color={COLORS[r.metrics.experience.color]} label={t.experience}/>
+              <MiniMetric value={r.metrics.terms.val} total={r.metrics.terms.total} color={COLORS[r.metrics.terms.color]} label={t.terms}/>
+              <MiniMetric value={r.metrics.education.val} total={r.metrics.education.total} color={COLORS[r.metrics.education.color]} label={t.education}/>
+            </div>
+          </div>
+          <div>
+            <div className="result-info-pill">
+              <Icon name="sparkles" size={11}/>
+              {t.readingJob}
+            </div>
+            <h2 className="result-title">{t.summaryHigh}</h2>
+            <p className="result-desc">{summaryDesc}</p>
+            <div className="badges-row">
+              <span className="badge-status" style={{background: `${scoreColor}15`, color: scoreColor, border: `1px solid ${scoreColor}40`}}>{status}</span>
+              <span className="badge-status" style={{background: `${scoreColor}15`, color: scoreColor, border: `1px solid ${scoreColor}40`}}>{risk}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="stack">
+        <div className="metric-grid">
+          <MetricCard data={r.metrics.requirements} icon="target" t={t}/>
+          <MetricCard data={r.metrics.experience} icon="trending" t={t}/>
+          <MetricCard data={r.metrics.terms} icon="sparkles" t={t}/>
+          <MetricCard data={r.metrics.education} icon="award" t={t}/>
+        </div>
+
+        {r.alerts && r.alerts.length > 0 && (
+          <div className="ai-card gap-card">
+            <div className="ai-card-corner tl"/><div className="ai-card-corner tr"/>
+            <div className="ai-card-corner bl"/><div className="ai-card-corner br"/>
+            <div className="section-head">
+              <div className="section-icon-box icon-red"><Icon name="shield" size={18}/></div>
+              <div>
+                <div className={`section-cat gap-cat`}>{t.maxPriority}</div>
+                <div className="section-title">{t.attentionPoints}</div>
+              </div>
+            </div>
+            <div className="gap-list">
+              {r.alerts.map((a, i) => (
+                <div key={i} className="gap-item">
+                  <div className="gap-icon-circle"><Icon name="x" size={14}/></div>
+                  <div style={{flex:1}}>
+                    <div className="gap-num">{a.num}</div>
+                    <div className="gap-text">{a.text}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {r.strengths && r.strengths.length > 0 && (
+          <div className="ai-card strength-card">
+            <div className="ai-card-corner tl"/><div className="ai-card-corner tr"/>
+            <div className="ai-card-corner bl"/><div className="ai-card-corner br"/>
+            <div className="section-head">
+              <div className="section-icon-box icon-green"><Icon name="checkCircle" size={18}/></div>
+              <div>
+                <div className={`section-cat strength-cat`}>{t.positiveSignals}</div>
+                <div className="section-title">{t.strengths}</div>
+              </div>
+            </div>
+            <div className="gap-list">
+              {r.strengths.map((s, i) => <div key={i} className="strength-item">{s}</div>)}
+            </div>
+          </div>
+        )}
+
+        <div className="ai-card">
+          <div className="ai-card-corner tl"/><div className="ai-card-corner tr"/>
+          <div className="ai-card-corner bl"/><div className="ai-card-corner br"/>
+          <div className="keywords-head">
+            <div className="section-head" style={{margin:0}}>
+              <div className="section-icon-box icon-gold"><Icon name="alert" size={18}/></div>
+              <div>
+                <div className={`section-cat keywords-cat`}>{t.jobLanguage}</div>
+                <div className="section-title">{t.jobTerms}</div>
+              </div>
+            </div>
+            <div className="coverage-display">
+              <div className="coverage-row">
+                <span className="coverage-label">{t.coverage}</span>
+                <span className="coverage-val" style={{color: COLORS[r.metrics.terms.color]}}>{r.metrics.terms.val}/{r.metrics.terms.total}</span>
+              </div>
+              <div className="progress-track" style={{width: 160}}>
+                <div className={`progress-fill ${r.metrics.terms.color}`} style={{width: `${r.metrics.terms.pct}%`}}/>
+              </div>
+            </div>
+          </div>
+          <p className="keywords-desc">{r.keywordsDesc}</p>
+          <div className="keywords-grid">
+            <div>
+              <div className="kw-label green">{t.presentInResume}</div>
+              <p className="kw-desc">{t.presentDesc}</p>
+              <div className="tags-wrap">
+                {r.keywords.present.length === 0 ? <span style={{color:'var(--muted)', fontSize:12}}>—</span> :
+                  r.keywords.present.map((k, i) => <span key={i} className="tag tag-green">{k}</span>)}
+              </div>
+            </div>
+            <div>
+              <div className="kw-label red">{t.absentInResume}</div>
+              <p className="kw-desc">{t.absentDesc}</p>
+              <div className="tags-wrap">
+                {r.keywords.missing.length === 0 ? <span style={{color:'var(--muted)', fontSize:12}}>— Excelente cobertura</span> :
+                  r.keywords.missing.map((k, i) => <span key={i} className="tag tag-red">{k}</span>)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="cta-adapt-card">
+          <div className="cta-adapt-tag">
+            <Icon name="zap" size={11}/>
+            {t.nextStep}
+          </div>
+          <h3 className="cta-adapt-title">{t.adaptCVTitle}</h3>
+          <p className="cta-adapt-desc">{t.adaptCVDesc}</p>
+          <div className="cta-adapt-buttons">
+            <button className="btn-adapt-primary" onClick={() => setAdaptOpen(true)}>
+              <Icon name="sparkles" size={14}/>
+              {t.adaptCVBtn}
+            </button>
+            <button className="btn-adapt-secondary" onClick={onNew}>
+              <Icon name="refresh" size={14}/>
+              {t.testAnotherJob}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <AdaptModal isOpen={adaptOpen} onClose={() => setAdaptOpen(false)} t={t}
+        suggestion={r.optimizerSuggestion} integratedTerms={r.integratedTerms}/>
+      <HistoryModal isOpen={historyOpen} onClose={() => setHistoryOpen(false)} onLoad={onLoadHistory} t={t}/>
+      <RewriteModal isOpen={rewriteOpen} onClose={() => setRewriteOpen(false)} t={t}
+        cvText={cvText} jdText={jdText} missingKeywords={r.keywords?.missing || []} apiKey={apiKey}/>
+    </div>
+  );
+}
+
+// ============== HEADER ==============
+function Header({ t, lang, setLang }) {
+  return (
+    <div className="header">
+      <div className="header-inner">
+        <div className="brand">
+          <div className="brand-logo"><Icon name="cpu" size={20}/></div>
+          <div>
+            <div className="brand-name">{t.appName}</div>
+            <div className="brand-tag">{t.appTag}</div>
+          </div>
+        </div>
+        <div className="header-right">
+          <div className="lang-switch">
+            <button className={`lang-btn ${lang==='pt'?'active':''}`} onClick={() => setLang('pt')}>PT</button>
+            <button className={`lang-btn ${lang==='en'?'active':''}`} onClick={() => setLang('en')}>EN</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============== CLAUDE API ANALYZER ==============
+async function claudeAnalyze(cvText, jdText, lang, apiKey) {
+  const prompt = lang === 'pt'
+    ? `Você é um especialista em ATS (Applicant Tracking Systems) e recrutamento. Analise a aderência entre o currículo e a vaga abaixo.
+
+CURRÍCULO:
+${cvText.slice(0, 3000)}
+
+DESCRIÇÃO DA VAGA:
+${jdText.slice(0, 2000)}
+
+Responda APENAS com um JSON válido no seguinte formato (sem markdown, sem explicações fora do JSON):
+{
+  "score": <número 0-100>,
+  "jobTitle": "<título da vaga>",
+  "summary": "<análise de 2-3 frases>",
+  "metrics": {
+    "requirements": { "val": <0-40>, "total": 40, "desc": "<descrição>" },
+    "experience": { "val": <0-30>, "total": 30, "desc": "<descrição>" },
+    "terms": { "val": <0-20>, "total": 20, "desc": "<descrição>" },
+    "education": { "val": <0-10>, "total": 10, "desc": "<descrição>" }
+  },
+  "alerts": [{"num": "FALHA 01", "text": "<descrição>"}],
+  "strengths": ["<ponto forte 1>", "<ponto forte 2>"],
+  "keywords": {
+    "present": ["<termo presente>"],
+    "missing": ["<termo ausente>"]
+  },
+  "optimizerSuggestion": "<parágrafo executivo de resumo profissional otimizado>",
+  "integratedTerms": ["<termo integrado>"]
+}`
+    : `You are an ATS (Applicant Tracking Systems) and recruitment expert. Analyze the match between the resume and job below.
+
+RESUME:
+${cvText.slice(0, 3000)}
+
+JOB DESCRIPTION:
+${jdText.slice(0, 2000)}
+
+Respond ONLY with valid JSON in this format (no markdown, no explanations outside the JSON):
+{
+  "score": <number 0-100>,
+  "jobTitle": "<job title>",
+  "summary": "<2-3 sentence analysis>",
+  "metrics": {
+    "requirements": { "val": <0-40>, "total": 40, "desc": "<description>" },
+    "experience": { "val": <0-30>, "total": 30, "desc": "<description>" },
+    "terms": { "val": <0-20>, "total": 20, "desc": "<description>" },
+    "education": { "val": <0-10>, "total": 10, "desc": "<description>" }
+  },
+  "alerts": [{"num": "GAP 01", "text": "<description>"}],
+  "strengths": ["<strength 1>", "<strength 2>"],
+  "keywords": {
+    "present": ["<present term>"],
+    "missing": ["<missing term>"]
+  },
+  "optimizerSuggestion": "<optimized executive professional summary paragraph>",
+  "integratedTerms": ["<integrated term>"]
+}`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] })
+  });
+  if (!resp.ok) throw new Error('Erro na API: ' + resp.status);
+  const data = await resp.json();
+  const text = data.content[0].text.replace(/```json|```/g, '').trim();
+  const parsed = JSON.parse(text);
+  // Enrich with computed fields
+  const addMetaFields = (m) => {
+    m.pct = Math.round((m.val / m.total) * 100);
+    m.color = getMetricColor(m.pct);
+    return m;
+  };
+  ['requirements','experience','terms','education'].forEach(k => {
+    const labels = lang === 'pt'
+      ? { requirements: 'Requisitos', experience: 'Experiência', terms: 'Termos', education: 'Formação' }
+      : { requirements: 'Requirements', experience: 'Experience', terms: 'Terms', education: 'Education' };
+    parsed.metrics[k].label = labels[k];
+    addMetaFields(parsed.metrics[k]);
+  });
+  parsed.timestamp = Date.now();
+  parsed.analyzedBy = 'claude';
+  parsed.keywordsDesc = lang === 'pt'
+    ? `Análise profunda com Claude AI. ${parsed.keywords.present.length} termos presentes, ${parsed.keywords.missing.length} ausentes.`
+    : `Deep analysis with Claude AI. ${parsed.keywords.present.length} terms present, ${parsed.keywords.missing.length} missing.`;
+  return parsed;
+}
+
+// ============== CV REWRITE WITH CLAUDE ==============
+async function claudeRewriteCV(cvText, jdText, missingKeywords, lang, apiKey) {
+  const prompt = lang === 'pt'
+    ? `Você é um especialista em escrita de currículos e ATS. Reescreva partes do currículo abaixo para melhorar a aderência à vaga.
+
+CURRÍCULO ORIGINAL:
+${cvText.slice(0, 2500)}
+
+DESCRIÇÃO DA VAGA:
+${jdText.slice(0, 1500)}
+
+TERMOS IMPORTANTES AUSENTES: ${missingKeywords.join(', ')}
+
+Responda APENAS com JSON válido:
+{
+  "summary": "<novo resumo profissional executivo de 3-4 frases integrando os termos ausentes>",
+  "adaptations": "<2-3 parágrafos com sugestões específicas de como adaptar a experiência profissional>",
+  "keywords": "<lista de palavras-chave e frases exatas para incluir no CV, separadas por vírgula>"
+}`
+    : `You are a resume writing and ATS expert. Rewrite parts of the resume below to improve job match.
+
+ORIGINAL RESUME:
+${cvText.slice(0, 2500)}
+
+JOB DESCRIPTION:
+${jdText.slice(0, 1500)}
+
+IMPORTANT MISSING TERMS: ${missingKeywords.join(', ')}
+
+Respond ONLY with valid JSON:
+{
+  "summary": "<new executive professional summary of 3-4 sentences integrating missing terms>",
+  "adaptations": "<2-3 paragraphs with specific suggestions on how to adapt professional experience>",
+  "keywords": "<list of exact keywords and phrases to include in CV, comma separated>"
+}`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
+  });
+  if (!resp.ok) throw new Error('API error: ' + resp.status);
+  const data = await resp.json();
+  const text = data.content[0].text.replace(/```json|```/g, '').trim();
+  return JSON.parse(text);
+}
+
+// ============== HISTORY UTILS ==============
+const HISTORY_KEY = 'ats_history_v1';
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
+}
+function saveToHistory(result) {
+  const h = loadHistory();
+  const entry = { id: Date.now(), ...result };
+  h.unshift(entry);
+  const trimmed = h.slice(0, 20);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+}
+function deleteFromHistory(id) {
+  const h = loadHistory().filter(e => e.id !== id);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
+}
+function clearHistory() { localStorage.removeItem(HISTORY_KEY); }
+
+// ============== EXPORT PDF ==============
+function exportPDF(result, t) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210, margin = 20, cw = W - margin * 2;
+
+  // Colors
+  const cyan = [0, 229, 255];
+  const dark = [5, 9, 18];
+  const white = [255, 255, 255];
+  const muted = [90, 112, 138];
+  const green = [16, 217, 160];
+  const red = [248, 113, 113];
+  const gold = [251, 191, 36];
+
+  // Background
+  doc.setFillColor(...dark);
+  doc.rect(0, 0, 210, 297, 'F');
+
+  // Header bar
+  doc.setFillColor(8, 13, 26);
+  doc.rect(0, 0, 210, 22, 'F');
+  doc.setTextColor(...cyan);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('ATS ANALYZER', margin, 14);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...muted);
+  doc.text('AI · POWERED', margin + 58, 14);
+  doc.setTextColor(...muted);
+  doc.text(new Date().toLocaleDateString(), W - margin, 14, { align: 'right' });
+
+  let y = 34;
+
+  // Job title
+  doc.setTextColor(...white);
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  const title = result.jobTitle || 'Análise ATS';
+  doc.text(title.slice(0, 50), margin, y);
+  y += 10;
+
+  // Score badge
+  const scoreColor = result.score >= 70 ? green : result.score >= 50 ? gold : red;
+  doc.setFillColor(...scoreColor);
+  doc.roundedRect(margin, y, 40, 18, 3, 3, 'F');
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.text(result.score + '%', margin + 20, y + 12, { align: 'center' });
+  doc.setFontSize(9);
+  doc.setTextColor(...muted);
+  doc.text(t.compatibility, margin + 46, y + 5);
+  const statusLabel = result.score >= 70 ? t.statusHigh : result.score >= 50 ? t.statusMid : t.statusLow;
+  doc.setTextColor(...scoreColor);
+  doc.setFont('helvetica', 'bold');
+  doc.text(statusLabel, margin + 46, y + 12);
+  y += 26;
+
+  // Divider
+  doc.setDrawColor(...cyan);
+  doc.setLineWidth(0.3);
+  doc.line(margin, y, W - margin, y);
+  y += 8;
+
+  // Metrics
+  doc.setTextColor(...cyan);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('MÉTRICAS DE ADERÊNCIA', margin, y);
+  y += 6;
+  const metrics = [
+    { label: t.requirements, val: result.metrics.requirements.val, total: 40, color: result.metrics.requirements.color },
+    { label: t.experience, val: result.metrics.experience.val, total: 30, color: result.metrics.experience.color },
+    { label: t.terms, val: result.metrics.terms.val, total: 20, color: result.metrics.terms.color },
+    { label: t.education, val: result.metrics.education.val, total: 10, color: result.metrics.education.color },
+  ];
+  const colW = cw / 2;
+  metrics.forEach((m, i) => {
+    const col = i % 2; const row = Math.floor(i / 2);
+    const mx = margin + col * colW;
+    const my = y + row * 22;
+    const pct = Math.round((m.val / m.total) * 100);
+    const mc = m.color === 'green' ? green : m.color === 'gold' ? gold : red;
+    doc.setTextColor(...white);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(m.label, mx, my + 4);
+    doc.setTextColor(...mc);
+    doc.setFontSize(9);
+    doc.text(`${m.val}/${m.total} (${pct}%)`, mx + colW - 4, my + 4, { align: 'right' });
+    doc.setFillColor(20, 34, 62);
+    doc.roundedRect(mx, my + 6, colW - 8, 3, 1, 1, 'F');
+    doc.setFillColor(...mc);
+    doc.roundedRect(mx, my + 6, (colW - 8) * pct / 100, 3, 1, 1, 'F');
+  });
+  y += metrics.length > 2 ? 50 : 30;
+
+  doc.setDrawColor(...cyan);
+  doc.line(margin, y, W - margin, y);
+  y += 8;
+
+  // Keywords
+  if (result.keywords) {
+    doc.setTextColor(...cyan);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TERMOS PRESENTES', margin, y);
+    y += 5;
+    doc.setTextColor(...green);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    const presentText = (result.keywords.present || []).join(' · ');
+    const pLines = doc.splitTextToSize(presentText || '—', cw);
+    doc.text(pLines.slice(0, 2), margin, y);
+    y += pLines.slice(0, 2).length * 4 + 4;
+
+    doc.setTextColor(...cyan);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TERMOS AUSENTES', margin, y);
+    y += 5;
+    doc.setTextColor(...red);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    const missingText = (result.keywords.missing || []).join(' · ');
+    const mLines = doc.splitTextToSize(missingText || '—', cw);
+    doc.text(mLines.slice(0, 2), margin, y);
+    y += mLines.slice(0, 2).length * 4 + 6;
+  }
+
+  doc.setDrawColor(...cyan);
+  doc.line(margin, y, W - margin, y);
+  y += 8;
+
+  // Alerts
+  if (result.alerts && result.alerts.length > 0) {
+    doc.setTextColor(...red);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PONTOS DE ATENÇÃO', margin, y);
+    y += 5;
+    result.alerts.slice(0, 3).forEach(a => {
+      doc.setTextColor(...muted);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.text(a.num + '  ', margin, y + 3);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...white);
+      const lines = doc.splitTextToSize(a.text, cw - 20);
+      doc.text(lines.slice(0, 2), margin + 20, y + 3);
+      y += lines.slice(0, 2).length * 4 + 4;
+    });
+    y += 4;
+  }
+
+  // Optimizer suggestion
+  if (result.optimizerSuggestion) {
+    doc.setDrawColor(...cyan);
+    doc.line(margin, y, W - margin, y);
+    y += 8;
+    doc.setTextColor(...cyan);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('RESUMO PROFISSIONAL OTIMIZADO', margin, y);
+    y += 5;
+    doc.setTextColor(...white);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    const oLines = doc.splitTextToSize(result.optimizerSuggestion, cw);
+    doc.text(oLines.slice(0, 8), margin, y);
+  }
+
+  // Footer
+  doc.setFillColor(8, 13, 26);
+  doc.rect(0, 285, 210, 12, 'F');
+  doc.setTextColor(...muted);
+  doc.setFontSize(7);
+  doc.text('ATS ANALYZER · AI POWERED · jobhuntats.netlify.app', W / 2, 292, { align: 'center' });
+
+  doc.save(`ATS_Report_${(result.jobTitle || 'analysis').replace(/[^a-z0-9]/gi, '_').slice(0, 30)}.pdf`);
+}
+
+// ============== HISTORY MODAL ==============
+function HistoryModal({ isOpen, onClose, onLoad, t }) {
+  const [history, setHistory] = useState([]);
+  useEffect(() => { if (isOpen) setHistory(loadHistory()); }, [isOpen]);
+  if (!isOpen) return null;
+  const del = (id) => { deleteFromHistory(id); setHistory(loadHistory()); };
+  const clearAll = () => { clearHistory(); setHistory([]); };
+  const scoreColor = (s) => s >= 70 ? '#10d9a0' : s >= 50 ? '#fbbf24' : '#f87171';
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card" onClick={e => e.stopPropagation()}>
+        <div className="modal-head">
+          <div className="modal-icon"><Icon name="briefcase" size={20}/></div>
+          <div className="modal-text">
+            <div className="modal-tag">HISTÓRICO</div>
+            <h3 className="modal-title">{t.historyTitle}</h3>
+          </div>
+          <button className="modal-close" onClick={onClose}><Icon name="close" size={16}/></button>
+        </div>
+        <div className="modal-body">
+          {history.length === 0
+            ? <div className="history-empty">{t.historyEmpty}</div>
+            : <div className="history-list">
+                {history.map(h => (
+                  <div key={h.id} className="history-item" onClick={() => { onLoad(h); onClose(); }}>
+                    <div className="history-score-badge" style={{background: `${scoreColor(h.score)}20`, color: scoreColor(h.score), border: `1px solid ${scoreColor(h.score)}50`}}>
+                      {h.score}%
+                    </div>
+                    <div className="history-info">
+                      <div className="history-job">{h.jobTitle}</div>
+                      <div className="history-date">{new Date(h.timestamp).toLocaleString()}</div>
+                    </div>
+                    <button className="history-del" onClick={e => { e.stopPropagation(); del(h.id); }}><Icon name="close" size={12}/></button>
+                  </div>
+                ))}
+              </div>
+          }
+        </div>
+        <div className="modal-foot">
+          {history.length > 0 && <button className="btn-ghost" onClick={clearAll} style={{color:'var(--red)'}}>{t.historyClear}</button>}
+          <button className="btn-ghost" onClick={onClose}>{t.close}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============== REWRITE MODAL ==============
+function RewriteModal({ isOpen, onClose, t, cvText, jdText, missingKeywords, apiKey }) {
+  const [loading, setLoading] = useState(false);
+  const [rewrite, setRewrite] = useState(null);
+  const [error, setError] = useState(null);
+  const [copied, setCopied] = useState('');
+
+  useEffect(() => {
+    if (isOpen && apiKey && !rewrite && !loading) {
+      setLoading(true); setError(null);
+      claudeRewriteCV(cvText, jdText, missingKeywords, t === i18n.pt ? 'pt' : 'en', apiKey)
+        .then(r => { setRewrite(r); setLoading(false); })
+        .catch(e => { setError(e.message); setLoading(false); });
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const copySection = (key, text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied(''), 2000);
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card" onClick={e => e.stopPropagation()} style={{maxWidth: 680}}>
+        <div className="modal-head">
+          <div className="modal-icon"><Icon name="edit" size={20}/></div>
+          <div className="modal-text">
+            <div className="modal-tag">CLAUDE AI</div>
+            <h3 className="modal-title">{t.rewriteTitle}</h3>
+            <p className="modal-desc">{t.rewriteDesc}</p>
+          </div>
+          <button className="modal-close" onClick={onClose}><Icon name="close" size={16}/></button>
+        </div>
+        <div className="modal-body">
+          {!apiKey && <div className="rewrite-no-key">{t.rewriteNoKey}<br/><a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a></div>}
+          {apiKey && loading && (
+            <div className="rewrite-loading">
+              <div className="spinner" style={{width:32,height:32,borderWidth:3}}/>
+              <div className="rewrite-loading-text">{t.rewriteLoading}</div>
+            </div>
+          )}
+          {apiKey && error && <div className="rewrite-no-key" style={{color:'var(--red)'}}>Erro: {error}</div>}
+          {apiKey && rewrite && (
+            <div className="rewrite-sections">
+              {[['summary', t.rewriteSection1], ['adaptations', t.rewriteSection2], ['keywords', t.rewriteSection3]].map(([key, label]) => (
+                <div key={key} className="rewrite-section-card">
+                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8}}>
+                    <div className="rewrite-section-label">{label}</div>
+                    <button className={`btn-copy ${copied===key?'copied':''}`} style={{fontSize:11,padding:'5px 10px'}} onClick={() => copySection(key, rewrite[key])}>
+                      <Icon name={copied===key?'check':'copy'} size={12}/>
+                      {copied===key ? t.copied : t.copyText}
+                    </button>
+                  </div>
+                  <div className="rewrite-section-text">{rewrite[key]}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="modal-foot">
+          <button className="btn-ghost" onClick={onClose}>{t.close}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============== APP ==============
+// ============== NAV TABS ==============
+function NavTabs({ activeTab, setActiveTab, t, resultCount }) {
+  const tabs = [
+    { id: 'analyze', icon: 'sparkles', label: t.tabAnalyze || 'Analisar CV' },
+    { id: 'jobs', icon: 'briefcase', label: t.tabJobs || 'Minhas Vagas' },
+    { id: 'history', icon: 'refresh', label: t.tabHistory || 'Histórico' },
+    { id: 'rewrite', icon: 'edit', label: t.tabRewrite || 'Reescrever CV' },
+    { id: 'salary', icon: 'upload', label: t.tabSalary || 'Salário' },
+    { id: 'config', icon: 'settings', label: t.tabConfig || 'Configuração' },
+  ];
+  return (
+    <div style={{
+      display:'flex', gap:4, padding:'0 0 20px 0',
+      borderBottom:'1px solid var(--border)', marginBottom:24, flexWrap:'wrap'
+    }}>
+      {tabs.map(tab => (
+        <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+          display:'flex', alignItems:'center', gap:7, padding:'10px 18px',
+          borderRadius:10, border:'1px solid', cursor:'pointer', fontSize:13, fontWeight:600,
+          fontFamily:'DM Sans, sans-serif', transition:'all 0.15s',
+          background: activeTab === tab.id ? 'var(--cyan)' : 'var(--surface)',
+          color: activeTab === tab.id ? '#000' : 'var(--text)',
+          borderColor: activeTab === tab.id ? 'var(--cyan)' : 'var(--border)',
+        }}>
+          <Icon name={tab.icon} size={14}/>
+          {tab.label}
+          {tab.id === 'history' && resultCount > 0 && (
+            <span style={{
+              background:'var(--cyan)', color:'#000', borderRadius:'50%',
+              width:18, height:18, fontSize:10, fontWeight:800,
+              display:'flex', alignItems:'center', justifyContent:'center'
+            }}>{resultCount}</span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ============== JOBS TAB ==============
+const SB_URL = "https://vslrnhuzzyltzhbzzdcc.supabase.co";
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzbHJuaHV6enlsdHpoYnp6ZGNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjEzMDEsImV4cCI6MjA5NjY5NzMwMX0.xz2EIJ58E0g_Rn9UMO_cI3gmes5zyOfPASpInlCcQbI";
+const PROFILE_ID = "b8ecc682-9d92-4451-8718-b314d498a239";
+
+async function sbFetch(path) {
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` }
+  });
+  if (!r.ok) throw new Error(`Supabase ${r.status}`);
+  return r.json();
+}
+
+async function sbPost(fn, body) {
+  const r = await fetch(`${SB_URL}/functions/v1/${fn}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SB_ANON}` },
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+function ScoreBadge({ score }) {
+  if (score == null) return <span style={{fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono,monospace'}}>—</span>;
+  const color = score >= 70 ? '#10d9a0' : score >= 50 ? '#fbbf24' : '#f87171';
+  return (
+    <div style={{
+      width:52, height:52, borderRadius:'50%', flexShrink:0,
+      display:'flex', alignItems:'center', justifyContent:'center',
+      background:`${color}18`, border:`2px solid ${color}60`,
+      color, fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:15
+    }}>{score}%</div>
+  );
+}
+
+function JobCard({ job, onSalary, salaryData, loadingSalary }) {
+  const [expanded, setExpanded] = useState(false);
+  const sourceLabel = { linkedin_rss:'LinkedIn', remotive:'Remotive', adzuna:'Adzuna' }[job.source] || job.source;
+  const fmt = n => n ? `R$ ${Math.round(n).toLocaleString('pt-BR')}` : null;
+  return (
+    <div style={{
+      background:'var(--surface)', border:`1px solid ${expanded ? 'var(--cyan)' : 'var(--border)'}`,
+      borderRadius:14, padding:'18px 20px', transition:'border-color 0.2s'
+    }}>
+      <div style={{display:'flex', gap:16, alignItems:'flex-start'}}>
+        <ScoreBadge score={job.match_score}/>
+        <div style={{flex:1, minWidth:0}}>
+          <div style={{display:'flex', gap:8, alignItems:'center', flexWrap:'wrap', marginBottom:4}}>
+            <span style={{fontFamily:'Syne,sans-serif', fontWeight:700, fontSize:15, color:'var(--text-bright)'}}>{job.title}</span>
+            {job.match_score >= 70 && <span style={{fontSize:10, background:'#10d9a018', color:'#10d9a0', border:'1px solid #10d9a040', borderRadius:4, padding:'2px 7px', fontWeight:700}}>ALTA MATCH</span>}
+          </div>
+          <div style={{fontSize:13, color:'var(--muted)', marginBottom:6}}>
+            {job.company && <span>{job.company} · </span>}
+            {job.location && <span>{job.location} · </span>}
+            <span style={{color:'var(--cyan)'}}>{sourceLabel}</span>
+          </div>
+          {/* Salary */}
+          {(job.salary_min || salaryData) && (
+            <div style={{fontSize:12, color:'#10d9a0', marginBottom:6}}>
+              💰 {salaryData
+                ? `Mercado: ${fmt(salaryData.market_min)} – ${fmt(salaryData.market_max)}/mês`
+                : `${fmt(job.salary_min)}${job.salary_max ? ` – ${fmt(job.salary_max)}` : '+'}/mês${job.salary_estimated ? ' (estimado)' : ''}`
+              }
+            </div>
+          )}
+          {/* Match reasons */}
+          {job.match_reasons?.length > 0 && (
+            <div style={{display:'flex', gap:6, flexWrap:'wrap', marginBottom:6}}>
+              {job.match_reasons.slice(0,2).map((r,i) => (
+                <span key={i} style={{fontSize:11, background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:4, padding:'2px 8px', color:'var(--text)'}}>{r}</span>
+              ))}
+            </div>
+          )}
+          {/* Salary analysis */}
+          {salaryData?.analysis && (
+            <div style={{fontSize:12, color:'var(--text)', lineHeight:1.6, background:'var(--surface2)', borderRadius:8, padding:'10px 12px', marginTop:8, marginBottom:6}}>
+              {salaryData.analysis}
+            </div>
+          )}
+          {/* Description preview */}
+          {expanded && job.description && (
+            <div style={{fontSize:12, color:'var(--muted)', lineHeight:1.6, marginTop:8, maxHeight:120, overflow:'hidden'}}>
+              {job.description.slice(0, 400)}...
+            </div>
+          )}
+        </div>
+      </div>
+      <div style={{display:'flex', gap:8, marginTop:14, flexWrap:'wrap'}}>
+        <a href={job.url} target="_blank" style={{
+          padding:'7px 16px', background:'linear-gradient(135deg,#00e5ff,#0080ff)',
+          borderRadius:8, color:'#000', fontSize:12, fontWeight:700, textDecoration:'none'
+        }}>Ver vaga →</a>
+        <button onClick={() => setExpanded(!expanded)} style={{
+          padding:'7px 14px', background:'var(--surface2)', border:'1px solid var(--border)',
+          borderRadius:8, color:'var(--text)', fontSize:12, cursor:'pointer'
+        }}>{expanded ? 'Menos ▲' : 'Detalhes ▼'}</button>
+        <button onClick={() => onSalary(job)} disabled={loadingSalary === job.id} style={{
+          padding:'7px 14px', background:'var(--surface2)', border:'1px solid var(--border)',
+          borderRadius:8, color:'var(--cyan)', fontSize:12, cursor:'pointer',
+          opacity: loadingSalary === job.id ? 0.5 : 1
+        }}>
+          {loadingSalary === job.id ? '🔍 Analisando...' : '💰 Ver Salário'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function JobsTab({ t, apiKey }) {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [scoring, setScoring] = useState(false);
+  const [error, setError] = useState(null);
+  const [salaryMap, setSalaryMap] = useState({});
+  const [loadingSalary, setLoadingSalary] = useState(null);
+  const [filter, setFilter] = useState('all'); // all | high | mid | low | unscored
+  const [sortBy, setSortBy] = useState('score'); // score | date
+
+  const loadJobs = async () => {
+    setLoading(true); setError(null);
+    try {
+      const data = await sbFetch(`jobs?profile_id=eq.${PROFILE_ID}&select=*&order=match_score.desc.nullslast,found_at.desc&limit=50`);
+      setJobs(data);
+    } catch(e) { setError(e.message); }
+    setLoading(false);
+  };
+
+  const searchNewJobs = async () => {
+    setSearching(true); setError(null);
+    try {
+      const data = await sbPost('search-jobs', { profile_id: PROFILE_ID });
+      if (data.error) throw new Error(data.error);
+      await loadJobs();
+    } catch(e) { setError(e.message); }
+    setSearching(false);
+  };
+
+  const scoreJobs = async () => {
+    if (!apiKey) { setError('Insira sua API Key na aba Configuração para usar o scoring com IA.'); return; }
+    setScoring(true); setError(null);
+    try {
+      // Get unscored jobs
+      const unscored = jobs.filter(j => j.match_score == null && j.description);
+      if (unscored.length === 0) { setScoring(false); return; }
+      // Process in batches of 10
+      const batches = [];
+      for (let i = 0; i < unscored.length; i += 10) batches.push(unscored.slice(i, i+10));
+      for (const batch of batches) {
+        const jobsList = batch.map((j,i) => `[${i}] ${j.title} — ${j.company||'?'} — ${j.location||'?'}\n${(j.description||'').slice(0,300)}`).join('\n\n');
+        const cvRes = await sbFetch(`profiles?id=eq.${PROFILE_ID}&select=cv_text`);
+        const cvText = cvRes[0]?.cv_text || '';
+        const prompt = `Você é especialista em recrutamento. Avalie o match entre o perfil e cada vaga.\n\nPERFIL:\n${cvText.slice(0,2000)}\n\nVAGAS:\n${jobsList}\n\nResponda APENAS com JSON array (sem markdown): [{"index":0,"score":<0-100>,"reasons":["razão 1","razão 2"]}]`;
+        const r = await fetch('https://api.anthropic.com/v1/messages', {
+          method:'POST',
+          headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+          body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}]})
+        });
+        const res = await r.json();
+        const text = (res.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
+        const scores = JSON.parse(text);
+        // Update each job in Supabase
+        for (const s of scores) {
+          const job = batch[s.index];
+          if (!job) continue;
+          await fetch(`${SB_URL}/rest/v1/jobs?id=eq.${job.id}`, {
+            method:'PATCH',
+            headers:{apikey:SB_ANON,Authorization:`Bearer ${SB_ANON}`,'Content-Type':'application/json',Prefer:'return=minimal'},
+            body:JSON.stringify({match_score:s.score,match_reasons:s.reasons})
+          });
+        }
+      }
+      await loadJobs();
+    } catch(e) { setError(e.message); }
+    setScoring(false);
+  };
+
+  const getSalary = async (job) => {
+    setLoadingSalary(job.id);
+    try {
+      const data = await sbPost('salary-analysis', { job_id: job.id });
+      setSalaryMap(prev => ({ ...prev, [job.id]: data }));
+    } catch(e) {}
+    setLoadingSalary(null);
+  };
+
+  useEffect(() => { loadJobs(); }, []);
+
+  const unscoredCount = jobs.filter(j => j.match_score == null).length;
+
+  const filtered = jobs
+    .filter(j => {
+      if (filter === 'high') return j.match_score >= 70;
+      if (filter === 'mid') return j.match_score >= 50 && j.match_score < 70;
+      if (filter === 'low') return j.match_score != null && j.match_score < 50;
+      if (filter === 'unscored') return j.match_score == null;
+      return true;
+    })
+    .sort((a,b) => {
+      if (sortBy === 'date') return new Date(b.found_at) - new Date(a.found_at);
+      return (b.match_score||0) - (a.match_score||0);
+    });
+
+  return (
+    <div>
+      {/* Header bar */}
+      <div style={{display:'flex',gap:10,marginBottom:20,flexWrap:'wrap',alignItems:'center'}}>
+        <div style={{flex:1}}>
+          <div style={{fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:22,color:'var(--text-bright)'}}>
+            Vagas para mim
+          </div>
+          <div style={{fontSize:13,color:'var(--muted)',marginTop:2}}>
+            {jobs.length} vagas encontradas · {jobs.filter(j=>j.match_score>=70).length} alta aderência
+          </div>
+        </div>
+        <button onClick={searchNewJobs} disabled={searching} style={{
+          padding:'10px 18px',background:'var(--surface)',border:'1px solid var(--cyan)',
+          borderRadius:10,color:'var(--cyan)',fontSize:13,fontWeight:700,cursor:searching?'not-allowed':'pointer',
+          opacity:searching?0.6:1,display:'flex',alignItems:'center',gap:6
+        }}>
+          {searching ? '🔍 Buscando...' : '🔍 Buscar novas vagas'}
+        </button>
+        {unscoredCount > 0 && (
+          <button onClick={scoreJobs} disabled={scoring||!apiKey} style={{
+            padding:'10px 18px',background:'var(--surface)',border:'1px solid var(--purple)',
+            borderRadius:10,color:'var(--purple)',fontSize:13,fontWeight:700,
+            cursor:scoring||!apiKey?'not-allowed':'pointer',opacity:scoring||!apiKey?0.6:1,
+            display:'flex',alignItems:'center',gap:6
+          }}>
+            {scoring ? '⚡ Calculando...' : `⚡ Calcular Score (${unscoredCount})`}
+          </button>
+        )}
+      </div>
+
+      {/* Filters */}
+      <div style={{display:'flex',gap:8,marginBottom:20,flexWrap:'wrap',alignItems:'center'}}>
+        {[['all','Todas'],['high','Alta ✅'],['mid','Média ⚡'],['low','Baixa'],['unscored','Sem score']].map(([v,l])=>(
+          <button key={v} onClick={()=>setFilter(v)} style={{
+            padding:'6px 14px',fontSize:12,borderRadius:8,cursor:'pointer',fontWeight:600,
+            background:filter===v?'var(--cyan)':'var(--surface2)',
+            color:filter===v?'#000':'var(--muted)',
+            border:`1px solid ${filter===v?'var(--cyan)':'var(--border)'}`
+          }}>{l}</button>
+        ))}
+        <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>
+          <span style={{fontSize:12,color:'var(--muted)'}}>Ordenar:</span>
+          {[['score','Score'],['date','Recentes']].map(([v,l])=>(
+            <button key={v} onClick={()=>setSortBy(v)} style={{
+              padding:'6px 12px',fontSize:12,borderRadius:8,cursor:'pointer',
+              background:sortBy===v?'var(--surface3)':'transparent',
+              color:sortBy===v?'var(--text)':'var(--muted)',
+              border:`1px solid ${sortBy===v?'var(--border)':'transparent'}`
+            }}>{l}</button>
+          ))}
+        </div>
+      </div>
+
+      {error && <div style={{color:'var(--red)',fontSize:13,marginBottom:16,padding:'10px 14px',background:'rgba(248,113,113,0.1)',borderRadius:8}}>{error}</div>}
+
+      {loading && (
+        <div style={{textAlign:'center',padding:48,color:'var(--muted)'}}>
+          <div className="spinner" style={{width:32,height:32,margin:'0 auto 12px'}}/>
+          Carregando vagas...
+        </div>
+      )}
+
+      {!loading && filtered.length === 0 && (
+        <div style={{textAlign:'center',padding:48,color:'var(--muted)'}}>
+          <div style={{fontSize:32,marginBottom:12}}>💼</div>
+          <div style={{marginBottom:16}}>{jobs.length === 0 ? 'Nenhuma vaga encontrada ainda.' : 'Nenhuma vaga neste filtro.'}</div>
+          {jobs.length === 0 && (
+            <button onClick={searchNewJobs} style={{
+              padding:'10px 24px',background:'linear-gradient(135deg,#00e5ff,#0080ff)',
+              border:'none',borderRadius:10,color:'#000',fontSize:13,fontWeight:700,cursor:'pointer'
+            }}>Buscar vagas agora</button>
+          )}
+        </div>
+      )}
+
+      <div style={{display:'flex',flexDirection:'column',gap:12}}>
+        {filtered.map(job => (
+          <JobCard key={job.id} job={job} onSalary={getSalary}
+            salaryData={salaryMap[job.id]} loadingSalary={loadingSalary}/>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============== SALARY TAB ==============
+function SalaryTab({ t, apiKey }) {
+  const [jobTitle, setJobTitle] = useState('');
+  const [company, setCompany] = useState('');
+  const [location, setLocation] = useState('São Paulo');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  const analyze = async () => {
+    if (!jobTitle.trim()) return;
+    if (!apiKey) { setError('Insira sua API Key na aba Configuração para usar a análise salarial.'); return; }
+    setLoading(true); setError(null); setResult(null);
+    const prompt = `Pesquise na web a faixa salarial de mercado atual no Brasil para este cargo:
+CARGO: ${jobTitle}
+EMPRESA: ${company || 'não informada'}
+LOCALIZAÇÃO: ${location || 'Brasil'}
+
+Pesquise em Glassdoor, Salario.com.br, Catho, Robert Half e fontes similares.
+Responda APENAS com JSON válido:
+{
+  "market_min": <mensal BRL>,
+  "market_median": <mensal BRL>,
+  "market_max": <mensal BRL>,
+  "analysis": "<3-4 frases com análise e dica de negociação>",
+  "sources": ["<fonte 1>", "<fonte 2>"]
+}`;
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+        body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1200,
+          tools:[{type:'web_search_20250305',name:'web_search'}],
+          messages:[{role:'user',content:prompt}] })
+      });
+      const data = await r.json();
+      const texts = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text);
+      const text = texts[texts.length-1] || '';
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error('Sem resultado');
+      setResult(JSON.parse(match[0]));
+    } catch(e) { setError(e.message); }
+    setLoading(false);
+  };
+
+  const fmt = (n) => n ? `R$ ${Math.round(n).toLocaleString('pt-BR')}` : '—';
+
+  return (
+    <div>
+      <div className="ai-card" style={{marginBottom:20}}>
+        <div className="card-header-row" style={{marginBottom:16}}>
+          <div className="card-tag">ANÁLISE SALARIAL</div>
+          <h3 style={{fontFamily:'Syne',fontWeight:700,fontSize:18,color:'var(--text-bright)',margin:0}}>
+            Salário de Mercado com IA
+          </h3>
+          <p style={{color:'var(--muted)',fontSize:13,margin:0}}>
+            Claude pesquisa Glassdoor, Catho, Robert Half e mais para estimar a faixa real.
+          </p>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr',gap:12,marginBottom:12}}>
+          <div>
+            <label style={{fontSize:11,color:'var(--muted)',letterSpacing:'0.1em',fontFamily:'JetBrains Mono,monospace'}}>CARGO *</label>
+            <input value={jobTitle} onChange={e=>setJobTitle(e.target.value)}
+              placeholder="Ex: Superintendente de Procurement"
+              style={{width:'100%',padding:'10px 14px',background:'var(--surface2)',border:'1px solid var(--border)',
+                borderRadius:8,color:'var(--text)',fontSize:13,marginTop:4,boxSizing:'border-box'}}/>
+          </div>
+          <div>
+            <label style={{fontSize:11,color:'var(--muted)',letterSpacing:'0.1em',fontFamily:'JetBrains Mono,monospace'}}>EMPRESA</label>
+            <input value={company} onChange={e=>setCompany(e.target.value)}
+              placeholder="Ex: B3"
+              style={{width:'100%',padding:'10px 14px',background:'var(--surface2)',border:'1px solid var(--border)',
+                borderRadius:8,color:'var(--text)',fontSize:13,marginTop:4,boxSizing:'border-box'}}/>
+          </div>
+          <div>
+            <label style={{fontSize:11,color:'var(--muted)',letterSpacing:'0.1em',fontFamily:'JetBrains Mono,monospace'}}>LOCALIZAÇÃO</label>
+            <input value={location} onChange={e=>setLocation(e.target.value)}
+              placeholder="São Paulo"
+              style={{width:'100%',padding:'10px 14px',background:'var(--surface2)',border:'1px solid var(--border)',
+                borderRadius:8,color:'var(--text)',fontSize:13,marginTop:4,boxSizing:'border-box'}}/>
+          </div>
+        </div>
+        <button onClick={analyze} disabled={loading||!jobTitle.trim()} style={{
+          padding:'11px 28px',background:'linear-gradient(135deg,#00e5ff,#0080ff)',
+          border:'none',borderRadius:10,color:'#000',fontSize:13,fontWeight:700,
+          cursor:loading||!jobTitle.trim()?'not-allowed':'pointer',opacity:loading||!jobTitle.trim()?0.5:1
+        }}>
+          {loading ? '🔍 Pesquisando...' : '🔍 Pesquisar Salário'}
+        </button>
+        {error && <div style={{color:'var(--red)',fontSize:13,marginTop:10}}>{error}</div>}
+      </div>
+
+      {result && (
+        <div className="ai-card">
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:20}}>
+            {[['Mínimo','market_min','var(--muted)'],['Mediana','market_median','var(--gold)'],['Máximo','market_max','var(--green)']].map(([label,key,color])=>(
+              <div key={key} style={{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:12,padding:'16px',textAlign:'center'}}>
+                <div style={{fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',fontFamily:'JetBrains Mono,monospace',marginBottom:8}}>{label}/MÊS</div>
+                <div style={{fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:22,color}}>{fmt(result[key])}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{fontSize:13,color:'var(--text)',lineHeight:1.7,marginBottom:16}}>{result.analysis}</div>
+          {result.sources?.length > 0 && (
+            <div>
+              <div style={{fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',fontFamily:'JetBrains Mono,monospace',marginBottom:8}}>FONTES</div>
+              {result.sources.map((s,i)=>(
+                <div key={i} style={{fontSize:11,color:'var(--cyan)',marginBottom:4}}>• {s}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============== CONFIG TAB ==============
+function ConfigTab({ t, apiKey, setApiKey }) {
+  const [show, setShow] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const save = () => { localStorage.setItem('ats_mvp_key', apiKey); setSaved(true); setTimeout(()=>setSaved(false),2000); };
+  return (
+    <div className="ai-card">
+      <div className="card-tag" style={{marginBottom:12}}>CONFIGURAÇÃO</div>
+      <h3 style={{fontFamily:'Syne',fontWeight:700,fontSize:18,color:'var(--text-bright)',margin:'0 0 8px 0'}}>
+        Anthropic API Key
+      </h3>
+      <p style={{color:'var(--muted)',fontSize:13,marginBottom:20,lineHeight:1.6}}>
+        Necessária para análise com Claude AI, reescrita do CV e análise salarial.
+        Obtenha em <a href="https://console.anthropic.com/settings/keys" target="_blank" style={{color:'var(--cyan)'}}>console.anthropic.com</a>
+      </p>
+      <div style={{display:'flex',gap:8,marginBottom:16}}>
+        <input
+          type={show?'text':'password'}
+          value={apiKey}
+          onChange={e=>setApiKey(e.target.value)}
+          placeholder="sk-ant-..."
+          style={{flex:1,padding:'10px 14px',background:'var(--surface2)',border:'1px solid var(--border)',
+            borderRadius:8,color:'var(--text)',fontSize:13,fontFamily:'JetBrains Mono,monospace'}}
+        />
+        <button onClick={()=>setShow(!show)} style={{
+          padding:'10px 16px',background:'var(--surface2)',border:'1px solid var(--border)',
+          borderRadius:8,color:'var(--muted)',cursor:'pointer'
+        }}>{show?'🙈':'👁️'}</button>
+        <button onClick={save} style={{
+          padding:'10px 20px',background:'linear-gradient(135deg,#00e5ff,#0080ff)',
+          border:'none',borderRadius:8,color:'#000',fontSize:13,fontWeight:700,cursor:'pointer'
+        }}>{saved?'✅ Salvo!':'Salvar'}</button>
+      </div>
+      {apiKey && <div style={{fontSize:12,color:'var(--green)'}}>✅ API Key configurada — recursos de IA habilitados.</div>}
+      {!apiKey && <div style={{fontSize:12,color:'var(--muted)'}}>⚠️ Sem API Key — usando análise semântica local.</div>}
+    </div>
+  );
+}
+
+// ============== STANDALONE REWRITE TAB ==============
+function RewriteStandaloneTab({ t, apiKey }) {
+  const [cvText, setCvText] = useState('');
+  const [jdText, setJdText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [rewrite, setRewrite] = useState(null);
+  const [error, setError] = useState(null);
+  const [copied, setCopied] = useState('');
+
+  const run = async () => {
+    if (!cvText.trim() || !jdText.trim()) return;
+    if (!apiKey) { setError('Insira sua API Key na aba Configuração.'); return; }
+    setLoading(true); setError(null); setRewrite(null);
+    try {
+      const r = await claudeRewriteCV(cvText, jdText, [], 'pt', apiKey);
+      setRewrite(r);
+    } catch(e) { setError(e.message); }
+    setLoading(false);
+  };
+
+  const copy = (key, text) => { navigator.clipboard.writeText(text); setCopied(key); setTimeout(()=>setCopied(''),2000); };
+
+  return (
+    <div>
+      <div className="ai-card" style={{marginBottom:20}}>
+        <div className="card-tag" style={{marginBottom:12}}>REESCRITA COM IA</div>
+        <h3 style={{fontFamily:'Syne',fontWeight:700,fontSize:18,color:'var(--text-bright)',margin:'0 0 8px 0'}}>
+          Reescrever CV com Claude
+        </h3>
+        <p style={{color:'var(--muted)',fontSize:13,marginBottom:16}}>
+          Cole seu currículo e a descrição da vaga. Claude reescreve as seções-chave para maximizar a aderência ao ATS.
+        </p>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>
+          <div>
+            <label style={{fontSize:11,color:'var(--muted)',letterSpacing:'0.1em',fontFamily:'JetBrains Mono,monospace'}}>SEU CURRÍCULO</label>
+            <textarea value={cvText} onChange={e=>setCvText(e.target.value)}
+              placeholder="Cole o texto do seu currículo aqui..."
+              rows={10} style={{width:'100%',padding:'12px',background:'var(--surface2)',border:'1px solid var(--border)',
+                borderRadius:8,color:'var(--text)',fontSize:12,marginTop:4,resize:'vertical',boxSizing:'border-box',lineHeight:1.5}}/>
+          </div>
+          <div>
+            <label style={{fontSize:11,color:'var(--muted)',letterSpacing:'0.1em',fontFamily:'JetBrains Mono,monospace'}}>DESCRIÇÃO DA VAGA</label>
+            <textarea value={jdText} onChange={e=>setJdText(e.target.value)}
+              placeholder="Cole a descrição completa da vaga aqui..."
+              rows={10} style={{width:'100%',padding:'12px',background:'var(--surface2)',border:'1px solid var(--border)',
+                borderRadius:8,color:'var(--text)',fontSize:12,marginTop:4,resize:'vertical',boxSizing:'border-box',lineHeight:1.5}}/>
+          </div>
+        </div>
+        <button onClick={run} disabled={loading||!cvText.trim()||!jdText.trim()} style={{
+          padding:'11px 28px',background:'linear-gradient(135deg,#10d9a0,#00e5ff)',
+          border:'none',borderRadius:10,color:'#000',fontSize:13,fontWeight:700,
+          cursor:loading||!cvText.trim()||!jdText.trim()?'not-allowed':'pointer',
+          opacity:loading||!cvText.trim()||!jdText.trim()?0.5:1
+        }}>
+          {loading ? '✍️ Reescrevendo...' : '✍️ Reescrever CV com IA'}
+        </button>
+        {error && <div style={{color:'var(--red)',fontSize:13,marginTop:10}}>{error}</div>}
+      </div>
+
+      {rewrite && (
+        <div className="rewrite-sections">
+          {[['summary','📋 RESUMO PROFISSIONAL'],['adaptations','🎯 ADAPTAÇÕES SUGERIDAS'],['keywords','🔑 KEYWORDS PARA INCLUIR']].map(([key,label])=>(
+            <div key={key} className="rewrite-section-card">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                <div className="rewrite-section-label">{label}</div>
+                <button className={`btn-copy ${copied===key?'copied':''}`} style={{fontSize:11,padding:'5px 10px'}}
+                  onClick={()=>copy(key,rewrite[key])}>
+                  <Icon name={copied===key?'check':'copy'} size={12}/>
+                  {copied===key?'Copiado!':'Copiar'}
+                </button>
+              </div>
+              <div className="rewrite-section-text">{rewrite[key]}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============== JOBS TAB ==============
+async function sbFetch(path) {
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` }
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function triggerJobSearch() {
+  const r = await fetch(`${SB_URL}/functions/v1/search-jobs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SB_ANON}` },
+    body: JSON.stringify({ profile_id: PROFILE_ID })
+  });
+  return r.json();
+}
+
+async function triggerSalaryAnalysis(jobId) {
+  const r = await fetch(`${SB_URL}/functions/v1/salary-analysis`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SB_ANON}` },
+    body: JSON.stringify({ job_id: jobId })
+  });
+  return r.json();
+}
+
+function JobCard({ job }) {
+  const score = job.match_score;
+  const scoreColor = score >= 70 ? '#10d9a0' : score >= 50 ? '#fbbf24' : score ? '#f87171' : '#5a708a';
+  const sourceLabel = { linkedin_rss: 'LinkedIn', remotive: 'Remotive', adzuna: 'Adzuna' }[job.source] || job.source;
+  const [salaryData, setSalaryData] = useState(null);
+  const [loadingSalary, setLoadingSalary] = useState(false);
+
+  const fetchSalary = async () => {
+    setLoadingSalary(true);
+    try { const d = await triggerSalaryAnalysis(job.id); setSalaryData(d); } catch(e) {}
+    setLoadingSalary(false);
+  };
+
+  return (
+    <div style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, padding:'18px 20px', marginBottom:12}}>
+      <div style={{display:'flex', alignItems:'flex-start', gap:14}}>
+        <div style={{width:52, height:52, borderRadius:'50%', flexShrink:0, background:`${scoreColor}18`, border:`2px solid ${scoreColor}50`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+          <span style={{fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:14, color:scoreColor}}>{score ? `${score}%` : '—'}</span>
+        </div>
+        <div style={{flex:1, minWidth:0}}>
+          <div style={{fontFamily:'Syne,sans-serif', fontWeight:700, fontSize:15, color:'var(--text-bright)', marginBottom:3}}>{job.title}</div>
+          <div style={{fontSize:12, color:'var(--muted)', marginBottom:6}}>
+            {job.company && `${job.company} · `}{job.location || ''} · <span style={{color:'var(--cyan)'}}>{sourceLabel}</span>
+          </div>
+          {job.match_reasons?.length > 0 && (
+            <div style={{display:'flex', flexWrap:'wrap', gap:4, marginBottom:8}}>
+              {job.match_reasons.slice(0,3).map((r,i) => (
+                <span key={i} style={{fontSize:10, padding:'3px 8px', borderRadius:20, background:'rgba(0,229,255,0.08)', color:'var(--cyan)', border:'1px solid rgba(0,229,255,0.2)'}}>{r}</span>
+              ))}
+            </div>
+          )}
+          {salaryData && (
+            <div style={{fontSize:12, color:'#10d9a0', marginBottom:4}}>
+              💰 R$ {Math.round(salaryData.market_min||0).toLocaleString('pt-BR')} – R$ {Math.round(salaryData.market_max||0).toLocaleString('pt-BR')}/mês
+              {salaryData.analysis && <div style={{fontSize:11, color:'var(--muted)', marginTop:4, fontStyle:'italic'}}>{salaryData.analysis.slice(0,180)}...</div>}
+            </div>
+          )}
+          {!salaryData && job.salary_min && (
+            <div style={{fontSize:12, color:'#10d9a0'}}>💰 R$ {Math.round(job.salary_min).toLocaleString('pt-BR')}{job.salary_max ? ` – R$ ${Math.round(job.salary_max).toLocaleString('pt-BR')}` : '+'}{job.salary_estimated ? ' (estimado)' : ''}</div>
+          )}
+        </div>
+        <div style={{display:'flex', flexDirection:'column', gap:6, flexShrink:0}}>
+          <a href={job.url} target="_blank" style={{padding:'7px 14px', background:'linear-gradient(135deg,#00e5ff,#0080ff)', border:'none', borderRadius:8, color:'#000', fontSize:11, fontWeight:700, textDecoration:'none', textAlign:'center', display:'block'}}>Ver vaga →</a>
+          {!salaryData && (
+            <button onClick={fetchSalary} disabled={loadingSalary} style={{padding:'7px 14px', background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:8, color:'var(--gold)', fontSize:11, fontWeight:600, cursor:'pointer', opacity:loadingSalary?0.5:1}}>
+              {loadingSalary ? '...' : '💰 Salário'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function JobsTab({ t }) {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
+  const [filter, setFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('score');
+  const [searchResult, setSearchResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  const loadJobs = async () => {
+    setLoading(true); setError(null);
+    try { const d = await sbFetch(`jobs?profile_id=eq.${PROFILE_ID}&select=*&order=found_at.desc&limit=100`); setJobs(d||[]); }
+    catch(e) { setError(e.message); }
+    setLoading(false);
+  };
+
+  const runSearch = async () => {
+    setSearching(true); setSearchResult(null);
+    try { const d = await triggerJobSearch(); setSearchResult(d); await loadJobs(); }
+    catch(e) { setError(e.message); }
+    setSearching(false);
+  };
+
+  useEffect(() => { loadJobs(); }, []);
+
+  const filtered = jobs
+    .filter(j => filter === 'all' || (filter === 'scored' && j.match_score) || (filter === 'linkedin' && j.source === 'linkedin_rss') || (filter === 'remote' && j.source === 'remotive'))
+    .sort((a, b) => sortBy === 'score' ? (b.match_score||0) - (a.match_score||0) : new Date(b.found_at) - new Date(a.found_at));
+
+  const highMatch = jobs.filter(j => j.match_score >= 70).length;
+
+  return (
+    <div>
+      <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:20}}>
+        {[['Total', jobs.length, 'var(--cyan)'], ['Match 70%+', highMatch, '#10d9a0'], ['LinkedIn', jobs.filter(j=>j.source==='linkedin_rss').length, 'var(--purple)'], ['Remotas', jobs.filter(j=>j.source==='remotive').length, 'var(--gold)']].map(([l,v,c])=>(
+          <div key={l} style={{background:'var(--surface)', border:'1px solid var(--border)', borderRadius:12, padding:'14px', textAlign:'center'}}>
+            <div style={{fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:24, color:c}}>{v}</div>
+            <div style={{fontSize:11, color:'var(--muted)', marginTop:2}}>{l}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{display:'flex', gap:10, marginBottom:16, flexWrap:'wrap', alignItems:'center'}}>
+        <button onClick={runSearch} disabled={searching} style={{padding:'10px 20px', background:'linear-gradient(135deg,#00e5ff,#0080ff)', border:'none', borderRadius:10, color:'#000', fontSize:13, fontWeight:700, cursor:searching?'not-allowed':'pointer', opacity:searching?0.6:1, display:'flex', alignItems:'center', gap:7}}>
+          <Icon name="refresh" size={14}/>{searching ? 'Buscando...' : 'Buscar novas vagas'}
+        </button>
+        <select value={filter} onChange={e=>setFilter(e.target.value)} style={{padding:'10px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, color:'var(--text)', fontSize:13}}>
+          <option value="all">Todas</option><option value="scored">Com score</option><option value="linkedin">LinkedIn</option><option value="remote">Remotas</option>
+        </select>
+        <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{padding:'10px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, color:'var(--text)', fontSize:13}}>
+          <option value="score">Melhor match</option><option value="date">Mais recentes</option>
+        </select>
+        <button onClick={loadJobs} style={{padding:'10px 14px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:10, color:'var(--muted)', fontSize:13, cursor:'pointer'}}>↻</button>
+      </div>
+      {searchResult && (
+        <div style={{background:'rgba(16,217,160,0.08)', border:'1px solid rgba(16,217,160,0.3)', borderRadius:10, padding:'12px 16px', marginBottom:16, fontSize:13, color:'#10d9a0'}}>
+          ✅ Encontradas <strong>{searchResult.found}</strong> vagas — LinkedIn: {searchResult.sources?.linkedin}, Remotive: {searchResult.sources?.remotive}
+        </div>
+      )}
+      {error && <div style={{color:'var(--red)', fontSize:13, marginBottom:12}}>Erro: {error}</div>}
+      {loading
+        ? <div style={{textAlign:'center', padding:48, color:'var(--muted)'}}><div className="spinner" style={{margin:'0 auto 16px'}}/>Carregando vagas...</div>
+        : filtered.length === 0
+          ? <div style={{textAlign:'center', padding:48, color:'var(--muted)'}}>
+              <div style={{fontSize:32, marginBottom:12}}>🔍</div>
+              <div>Nenhuma vaga encontrada.</div>
+              <button onClick={runSearch} style={{marginTop:16, padding:'10px 24px', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, color:'var(--cyan)', cursor:'pointer', fontSize:13}}>Buscar vagas agora →</button>
+            </div>
+          : filtered.map(job => <JobCard key={job.id} job={job} />)
+      }
+    </div>
+  );
+}
+
+// ============== APP ==============
+function App() {
+  const [lang, setLang] = useState('pt');
+  const [activeTab, setActiveTab] = useState('analyze');
+  const [page, setPage] = useState('input'); // input | processing | results
+  const [result, setResult] = useState(null);
+  const [apiKey, setApiKey] = useState(localStorage.getItem('ats_mvp_key') || '');
+  const [lastCvText, setLastCvText] = useState('');
+  const [lastJdText, setLastJdText] = useState('');
+  const t = i18n[lang];
+
+  const [historyList, setHistoryList] = useState(loadHistory());
+  const refreshHistory = () => setHistoryList(loadHistory());
+
+  const onAnalyze = async (cvText, jdText, key) => {
+    setPage('processing');
+    setLastCvText(cvText);
+    setLastJdText(jdText);
+    const effectiveKey = key || apiKey;
+    await new Promise(r => setTimeout(r, effectiveKey ? 2000 : 4500));
+    let analysis;
+    if (effectiveKey) {
+      try {
+        analysis = await claudeAnalyze(cvText, jdText, lang, effectiveKey);
+      } catch (e) {
+        analysis = smartAnalyze(cvText, jdText, lang);
+        analysis.analyzeError = e.message;
+      }
+    } else {
+      analysis = smartAnalyze(cvText, jdText, lang);
+    }
+    saveToHistory(analysis);
+    refreshHistory();
+    setResult(analysis);
+    setPage('results');
+  };
+
+  const onBack = () => setPage('input');
+  const onNew = () => { setResult(null); setPage('input'); };
+  const onLoadHistory = (entry) => { setResult(entry); setPage('results'); setActiveTab('analyze'); };
+
+  return (
+    <div>
+      <Header t={t} lang={lang} setLang={setLang}/>
+      <div className="container">
+        <NavTabs activeTab={activeTab} setActiveTab={tab => { setActiveTab(tab); if (tab === 'analyze') setPage('input'); }} t={t} resultCount={historyList.length}/>
+
+        {activeTab === 'analyze' && (
+          <>
+            {page === 'input' && <InputPage t={t} lang={lang} onAnalyze={onAnalyze} apiKey={apiKey} setApiKey={setApiKey}/>}
+            {page === 'processing' && <ProcessingPage t={t}/>}
+            {page === 'results' && result && (
+              <ResultsPage
+                result={result} t={t} onBack={onBack} onNew={onNew}
+                apiKey={apiKey} cvText={lastCvText} jdText={lastJdText}
+                onLoadHistory={onLoadHistory}
+              />
+            )}
+          </>
+        )}
+
+        {activeTab === 'jobs' && <JobsTab t={t} />}
+        {activeTab === 'jobs' && <JobsTab t={t} apiKey={apiKey}/>}
+        {activeTab === 'history' && (
+          <div>
+            {historyList.length === 0
+              ? <div className="ai-card" style={{textAlign:'center',padding:48,color:'var(--muted)'}}>
+                  <div style={{fontSize:32,marginBottom:12}}>📂</div>
+                  <div>{t.historyEmpty}</div>
+                  <button onClick={()=>setActiveTab('analyze')} style={{marginTop:16,padding:'10px 24px',background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:8,color:'var(--cyan)',cursor:'pointer',fontSize:13}}>
+                    Fazer primeira análise →
+                  </button>
+                </div>
+              : <div>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+                    <div style={{fontFamily:'Syne',fontWeight:700,fontSize:18,color:'var(--text-bright)'}}>{t.historyTitle}</div>
+                    <button onClick={()=>{clearHistory();refreshHistory();}} style={{fontSize:12,color:'var(--red)',background:'transparent',border:'none',cursor:'pointer'}}>{t.historyClear}</button>
+                  </div>
+                  <div className="history-list">
+                    {historyList.map(h => {
+                      const scoreColor = h.score >= 70 ? '#10d9a0' : h.score >= 50 ? '#fbbf24' : '#f87171';
+                      return (
+                        <div key={h.id} className="history-item" onClick={()=>onLoadHistory(h)}>
+                          <div className="history-score-badge" style={{background:`${scoreColor}20`,color:scoreColor,border:`1px solid ${scoreColor}50`}}>{h.score}%</div>
+                          <div className="history-info">
+                            <div className="history-job">{h.jobTitle}</div>
+                            <div className="history-date">{new Date(h.timestamp).toLocaleString()}</div>
+                          </div>
+                          <button className="history-del" onClick={e=>{e.stopPropagation();deleteFromHistory(h.id);refreshHistory();}}>
+                            <Icon name="close" size={12}/>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+            }
+          </div>
+        )}
+
+        {activeTab === 'rewrite' && <RewriteStandaloneTab t={t} apiKey={apiKey}/>}
+        {activeTab === 'salary' && <SalaryTab t={t} apiKey={apiKey}/>}
+        {activeTab === 'config' && <ConfigTab t={t} apiKey={apiKey} setApiKey={setApiKey}/>}
+
+      </div>
+      <div className="footer-meta">
+        <span>✦</span> {t.footer} <span>✦</span>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
