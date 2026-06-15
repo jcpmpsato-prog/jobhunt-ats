@@ -1453,9 +1453,11 @@ const i18n = {
     rewriteDesc: "Claude reescreve as seções do seu CV para maximizar aderência à vaga.",
     rewriteLoading: "Claude está reescrevendo seu CV...",
     rewriteNoKey: "Insira sua Anthropic API Key na seção de configuração para usar a reescrita com IA.",
-    rewriteSection1: "RESUMO PROFISSIONAL",
-    rewriteSection2: "ADAPTAÇÕES SUGERIDAS",
-    rewriteSection3: "PALAVRAS-CHAVE A INCLUIR",
+    rwSummary: "RESUMO PROFISSIONAL",
+    rwExperience: "EXPERIÊNCIA REESCRITA (BULLETS)",
+    rwSkills: "COMPETÊNCIAS",
+    rwKeywords: "PALAVRAS-CHAVE A INCLUIR",
+    rwChecklist: "AJUSTES NO ARQUIVO FINAL",
     aiAnalysisLoading: "Claude está analisando...",
     aiAnalysisBadge: "ANÁLISE COM CLAUDE AI",
     pdfExporting: "Gerando PDF...",
@@ -1546,9 +1548,11 @@ const i18n = {
     rewriteDesc: "Claude rewrites your CV sections to maximize job match.",
     rewriteLoading: "Claude is rewriting your CV...",
     rewriteNoKey: "Enter your Anthropic API Key in the configuration section to use AI rewriting.",
-    rewriteSection1: "PROFESSIONAL SUMMARY",
-    rewriteSection2: "SUGGESTED ADAPTATIONS",
-    rewriteSection3: "KEYWORDS TO INCLUDE",
+    rwSummary: "PROFESSIONAL SUMMARY",
+    rwExperience: "REWRITTEN EXPERIENCE (BULLETS)",
+    rwSkills: "SKILLS",
+    rwKeywords: "KEYWORDS TO INCLUDE",
+    rwChecklist: "FINAL FILE FIXES",
     aiAnalysisLoading: "Claude is analyzing...",
     aiAnalysisBadge: "ANALYZED BY CLAUDE AI",
     pdfExporting: "Generating PDF...",
@@ -2513,43 +2517,79 @@ Respond ONLY with valid JSON in this format (no markdown, no explanations outsid
 // ============== CV REWRITE WITH CLAUDE ==============
 async function claudeRewriteCV(cvText, jdText, missingKeywords, lang, apiKey) {
   const prompt = lang === 'pt'
-    ? `Você é um especialista em escrita de currículos e ATS. Reescreva partes do currículo abaixo para melhorar a aderência à vaga.
+    ? `Você é um especialista sênior em currículos executivos e em sistemas ATS brasileiros (Gupy/GAIA, Microsoft, sistemas de RH). Reescreva o currículo abaixo para maximizar a aderência à vaga e passar em qualquer ATS, mantendo voz humana e natural.
 
 CURRÍCULO ORIGINAL:
-${cvText.slice(0, 2500)}
+${cvText.slice(0, 8000)}
 
 DESCRIÇÃO DA VAGA:
-${jdText.slice(0, 1500)}
+${jdText.slice(0, 3000)}
 
 TERMOS IMPORTANTES AUSENTES: ${missingKeywords.join(', ')}
 
-Responda APENAS com JSON válido:
+REGRAS DE ATS (obrigatórias):
+- Cada bullet começa com verbo de ação + resultado quantificado + contexto, em no máximo 2 frases.
+- Tempo verbal: pretérito para cargos passados (Liderei, Reduzi, Implementei, Gerenciei, Otimizei, Aumentei, Desenvolvi, Negociei); presente para o cargo atual. NUNCA use futuro — nada de "Liderarei", "Otimizarei", "Gerenciarei".
+- Proibido: "responsável por", "ajudei", "participei", "fui responsável", "atuei em".
+- Métricas em % (40%, 95%), R$ (R$ 50M+), quantidades (60+ profissionais), tempo (18 meses), disponibilidade (99,9%).
+- NÃO invente números. Use apenas os que já existem no CV. Onde faltar uma métrica relevante, escreva o marcador [quantificar: ex. 40%] para o candidato preencher com dado real. Jamais fabrique resultados.
+- Integre as palavras-chave exatas da vaga dentro das frases (não como lista solta). Use sinônimos quando soar natural (Gestão / Gerenciamento; Liderança / Mentoria).
+- Resumo: 3-4 linhas, com cargo-alvo específico + anos de experiência + 2-3 resultados mensuráveis. Sem "em busca de oportunidade", "disponível para", "flexível".
+- Competências: 5-8 categorias, 3-5 itens cada, separadas por " | ".
+- Seções com nomes simples: Resumo, Experiência, Competências, Formação, Certificações, Idiomas. Consolide formações redundantes (2-3) e priorize 8-12 certificações.
+
+VOZ HUMANA (anti-IA):
+- Varie o tamanho das frases. Sem ritmo repetitivo nem estruturas simétricas.
+- Proibidas frases típicas de IA: "no mundo de hoje", "é importante destacar", "não apenas... mas também", "em conclusão", "potencialize", "transforme seu", "descubra como".
+- Linguagem direta, como alguém que de fato executou o trabalho. Sem conclusões arrumadas demais nem tom de manual.
+
+Responda APENAS com JSON válido, sem markdown, sem texto fora do JSON:
 {
-  "summary": "<novo resumo profissional executivo de 3-4 frases integrando os termos ausentes>",
-  "adaptations": "<2-3 parágrafos com sugestões específicas de como adaptar a experiência profissional>",
-  "keywords": "<lista de palavras-chave e frases exatas para incluir no CV, separadas por vírgula>"
+  "summary": "<resumo profissional reescrito, 3-4 linhas>",
+  "experience": "<bullets reescritos da experiência, um por linha, cada um começando com '• ', verbo no início + métrica + contexto>",
+  "skills": "<5-8 linhas no formato 'Categoria: item | item | item', uma categoria por linha>",
+  "keywords": "<palavras-chave exatas da vaga a incluir no CV, separadas por vírgula>",
+  "checklist": "<ajustes estruturais no arquivo final: número de páginas, PDF em texto (não imagem), 1 coluna sem tabelas, consolidar formações, top 8-12 certificações, remover foto e dados pessoais (CPF/RG/idade), e onde preencher os marcadores [quantificar]>"
 }`
-    : `You are a resume writing and ATS expert. Rewrite parts of the resume below to improve job match.
+    : `You are a senior expert in executive resumes and ATS systems (Gupy/GAIA, Microsoft, HR systems). Rewrite the resume below to maximize job match and pass any ATS, while keeping a natural human voice.
 
 ORIGINAL RESUME:
-${cvText.slice(0, 2500)}
+${cvText.slice(0, 8000)}
 
 JOB DESCRIPTION:
-${jdText.slice(0, 1500)}
+${jdText.slice(0, 3000)}
 
 IMPORTANT MISSING TERMS: ${missingKeywords.join(', ')}
 
-Respond ONLY with valid JSON:
+ATS RULES (mandatory):
+- Each bullet starts with an action verb + quantified result + context, in at most 2 sentences.
+- Verb tense: past tense for past roles (Led, Reduced, Implemented, Managed, Optimized, Increased, Developed, Negotiated); present for the current role. NEVER use future tense.
+- Forbidden: "responsible for", "helped with", "participated in", "worked on".
+- Metrics in % (40%, 95%), currency (US$ 50M+), counts (60+ professionals), time (18 months), uptime (99.9%).
+- Do NOT invent numbers. Use only those already in the resume. Where a relevant metric is missing, write the marker [quantify: e.g. 40%] for the candidate to fill with real data. Never fabricate results.
+- Integrate the job's exact keywords inside sentences (not as a loose list). Use synonyms when natural.
+- Summary: 3-4 lines, specific target role + years of experience + 2-3 measurable results. No "seeking opportunity", "available for", "flexible".
+- Skills: 5-8 categories, 3-5 items each, separated by " | ".
+- Simple section names: Summary, Experience, Skills, Education, Certifications, Languages. Consolidate redundant education (2-3) and prioritize 8-12 certifications.
+
+HUMAN VOICE (anti-AI):
+- Vary sentence length. No repetitive rhythm or symmetric structures.
+- Forbidden AI phrases: "in today's world", "it's important to highlight", "not only... but also", "in conclusion", "unlock", "transform your", "discover how".
+- Direct language, like someone who actually did the work. No overly tidy conclusions.
+
+Respond ONLY with valid JSON, no markdown, no text outside the JSON:
 {
-  "summary": "<new executive professional summary of 3-4 sentences integrating missing terms>",
-  "adaptations": "<2-3 paragraphs with specific suggestions on how to adapt professional experience>",
-  "keywords": "<list of exact keywords and phrases to include in CV, comma separated>"
+  "summary": "<rewritten professional summary, 3-4 lines>",
+  "experience": "<rewritten experience bullets, one per line, each starting with '• ', verb first + metric + context>",
+  "skills": "<5-8 lines in the format 'Category: item | item | item', one category per line>",
+  "keywords": "<exact job keywords to include in the CV, comma separated>",
+  "checklist": "<structural fixes for the final file: page count, text PDF (not image), single column no tables, consolidate education, top 8-12 certifications, remove photo and personal data, and where to fill the [quantify] markers>"
 }`;
 
   const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4096, messages: [{ role: 'user', content: prompt }] })
   });
   if (!resp.ok) throw new Error('API error: ' + resp.status);
   const data = await resp.json();
@@ -2853,7 +2893,7 @@ function RewriteModal({ isOpen, onClose, t, cvText, jdText, missingKeywords, api
           {apiKey && error && <div className="rewrite-no-key" style={{color:'var(--red)'}}>Erro: {error}</div>}
           {apiKey && rewrite && (
             <div className="rewrite-sections">
-              {[['summary', t.rewriteSection1], ['adaptations', t.rewriteSection2], ['keywords', t.rewriteSection3]].map(([key, label]) => (
+              {[['summary', t.rwSummary], ['experience', t.rwExperience], ['skills', t.rwSkills], ['keywords', t.rwKeywords], ['checklist', t.rwChecklist]].filter(([key]) => rewrite[key]).map(([key, label]) => (
                 <div key={key} className="rewrite-section-card">
                   <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8}}>
                     <div className="rewrite-section-label">{label}</div>
@@ -3006,7 +3046,7 @@ function RewriteTab({ apiKey }) {
       </div>
       {rewrite&&(
         <div className="rewrite-sections">
-          {[['summary','📋 RESUMO'],['adaptations','🎯 ADAPTAÇÕES'],['keywords','🔑 KEYWORDS']].map(([key,label])=>(
+          {[['summary','📋 RESUMO PROFISSIONAL'],['experience','🧩 EXPERIÊNCIA (BULLETS)'],['skills','⚙️ COMPETÊNCIAS'],['keywords','🔑 PALAVRAS-CHAVE'],['checklist','✅ AJUSTES NO ARQUIVO FINAL']].filter(([key])=>rewrite[key]).map(([key,label])=>(
             <div key={key} className="rewrite-section-card">
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
                 <div className="rewrite-section-label">{label}</div>
