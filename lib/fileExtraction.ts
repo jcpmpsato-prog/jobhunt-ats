@@ -17,14 +17,18 @@ async function extractPdfText(file: File): Promise<string> {
     const reader = new FileReader()
     reader.onload = async (e) => {
       try {
-        const pdfjsLib = (await import('pdfjs-dist')).default
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`
+        const pdfjs = await import('pdfjs-dist')
+        const pdfjsLib = pdfjs.default ?? pdfjs
+        // Use CDN worker — avoids bundling issues with Next.js static export
+        if (pdfjsLib.GlobalWorkerOptions) {
+          pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`
+        }
         const pdf = await pdfjsLib.getDocument({ data: e.target!.result as ArrayBuffer }).promise
         let text = ''
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i)
           const tc = await page.getTextContent()
-          text += (tc.items as any[]).map(it => it.str).join(' ') + '\n\n'
+          text += (tc.items as any[]).map((it: any) => it.str).join(' ') + '\n\n'
         }
         if (text.trim().length < 50) reject(new Error('PDF sem texto extraível (pode ser scan).'))
         else resolve(text.trim())
