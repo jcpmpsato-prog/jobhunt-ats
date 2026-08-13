@@ -235,6 +235,14 @@ export function ConfigTab({ apiKey, setApiKey, t }: { apiKey: string; setApiKey:
       <div style={{ fontSize: 12, color: apiKey ? 'var(--green)' : 'var(--muted)' }}>
         {apiKey ? t.configActive : t.configInactive}
       </div>
+      <div style={{ marginTop: 20, padding: '16px 18px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 12 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-bright)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
+          {(t as any).privacyTitle}
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--muted2)', lineHeight: 1.7 }}>
+          {(t as any).privacyBody}
+        </div>
+      </div>
     </div>
   )
 }

@@ -63,7 +63,7 @@ export default function ATSApp() {
         <NavTabs activeTab={activeTab} setActiveTab={handleTabChange} t={t} historyCount={historyCount} />
         {activeTab === 'analyze' && (
           <>
-            {page === 'input' && <InputPage t={t} lang={lang} onAnalyze={onAnalyze} apiKey={apiKey} setApiKey={handleApiKey} />}
+            {page === 'input' && <InputPage t={t} lang={lang} onAnalyze={onAnalyze} apiKey={apiKey} setApiKey={handleApiKey} onGoFormat={() => setActiveTab('format')} />}
             {page === 'processing' && <ProcessingPage t={t} />}
             {page === 'results' && result && (
               <ResultsPage result={result} t={t} lang={lang}
@@ -78,7 +78,7 @@ export default function ATSApp() {
         {activeTab === 'salary' && <SalaryTab apiKey={apiKey} t={t} />}
         {activeTab === 'config' && <ConfigTab apiKey={apiKey} setApiKey={handleApiKey} t={t} />}
       </div>
-      <div className="footer-meta"><span>✦</span> {t.footer} <span>✦</span></div>
+      <div className="footer-meta">{t.footer}</div>
     </div>
   )
 }

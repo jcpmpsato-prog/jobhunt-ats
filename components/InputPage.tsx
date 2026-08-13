@@ -10,9 +10,10 @@ interface InputPageProps {
   onAnalyze: (cvText: string, jdText: string, apiKey: string) => void
   apiKey: string
   setApiKey: (k: string) => void
+  onGoFormat?: () => void
 }
 
-export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey }: InputPageProps) {
+export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoFormat }: InputPageProps) {
   const [cvFile, setCvFile] = useState<File | null>(null)
   const [cvText, setCvText] = useState('')
   const [cvMode, setCvMode] = useState<'upload' | 'paste'>('upload')
@@ -20,7 +21,6 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey }: Inp
   const [extracting, setExtracting] = useState(false)
   const [extractError, setExtractError] = useState<string | null>(null)
   const [jdText, setJdText] = useState('')
-  const [showConfig, setShowConfig] = useState(false)
   const cvInputRef = useRef<HTMLInputElement>(null)
 
   const handleCvFile = async (f: File | null | undefined) => {
@@ -49,9 +49,21 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey }: Inp
           <span className="gradient">{t.heroTitleB}</span>
         </h1>
         <p className="hero-desc">{t.heroDesc}</p>
+        <div className="hero-ctas">
+          <button className="btn-hero-primary" onClick={() => document.getElementById('analyze-cards')?.scrollIntoView({ behavior: 'smooth' })}>
+            <Icon name="target" size={16} />
+            {(t as any).heroBtnAnalyze}
+          </button>
+          {onGoFormat && (
+            <button className="btn-hero-secondary" onClick={onGoFormat}>
+              <Icon name="file" size={16} />
+              {(t as any).heroBtnFormat}
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="input-grid">
+      <div className="input-grid" id="analyze-cards">
         {/* CV Card */}
         <div className="ai-card input-card">
           <div className="ai-card-corner tl" /><div className="ai-card-corner tr" />
@@ -149,28 +161,6 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey }: Inp
           <Icon name="zap" size={18} />
           {t.runAnalysis}
         </button>
-
-        <div className="config-collapsed">
-          <button className="config-toggle" onClick={() => setShowConfig(!showConfig)}>
-            <span className="config-toggle-left">
-              <Icon name="cpu" size={14} />
-              {t.optionalConfig}
-              {apiKey && <span style={{ color: 'var(--green)', fontSize: 11, fontFamily: 'Inter' }}>● ATIVO</span>}
-            </span>
-            <Icon name="chevron" size={14} />
-          </button>
-          {showConfig && (
-            <div className="config-body">
-              <label>{t.apiKeyLabel}</label>
-              <input type="password" placeholder="sk-ant-..." value={apiKey}
-                onChange={e => setApiKey(e.target.value)} />
-              <div className="config-help">
-                {t.apiKeyHelp}{' '}
-                <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer">console.anthropic.com</a>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   )
