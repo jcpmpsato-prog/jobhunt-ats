@@ -34,7 +34,7 @@ export default function Donut({ pct, size = 200, stroke = 14, color, showValue, 
             <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
         </defs>
-        <circle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(0,229,255,0.08)" strokeWidth={stroke} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={radius} stroke="#eef2f8" strokeWidth={stroke} fill="none" />
         <circle
           cx={size / 2} cy={size / 2} r={radius}
           stroke={color} strokeWidth={stroke} fill="none"
@@ -42,18 +42,18 @@ export default function Donut({ pct, size = 200, stroke = 14, color, showValue, 
           strokeLinecap="round"
           style={{
             transition: 'stroke-dashoffset 1.4s cubic-bezier(0.4,0,0.2,1)',
-            filter: `drop-shadow(0 0 8px ${color})`,
+            
           }}
         />
       </svg>
       {showValue && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           {label && (
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: 'var(--muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 2 }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 9, color: 'var(--muted)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 2 }}>
               {label}
             </div>
           )}
-          <div style={{ fontFamily: 'Syne, sans-serif', fontSize: valueSize ?? size / 3.2, fontWeight: 800, color: 'var(--text-bright)', lineHeight: 1, textShadow: `0 0 20px ${color}50` }}>
+          <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: valueSize ?? size / 3.2, fontWeight: 800, color: 'var(--text-bright)', lineHeight: 1 }}>
             {value !== undefined ? value : pct}
           </div>
         </div>

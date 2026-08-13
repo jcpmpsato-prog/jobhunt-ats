@@ -6,6 +6,7 @@ import InputPage from './InputPage'
 import ProcessingPage from './ProcessingPage'
 import ResultsPage from './ResultsPage'
 import { HistoryTabPage, RewriteTab, SalaryTab, ConfigTab } from './TabPages'
+import FormatTab from './FormatTab'
 import { smartAnalyze, claudeAnalyze, saveToHistory, loadHistory } from '../lib/analyzer'
 import { i18n, type Lang } from '../lib/i18n'
 
@@ -72,6 +73,7 @@ export default function ATSApp() {
           </>
         )}
         {activeTab === 'history' && <HistoryTabPage onLoad={onLoadHistory} t={t} />}
+        {activeTab === 'format' && <FormatTab apiKey={apiKey} lang={lang} />}
         {activeTab === 'rewrite' && <RewriteTab apiKey={apiKey} t={t} lang={lang} />}
         {activeTab === 'salary' && <SalaryTab apiKey={apiKey} t={t} />}
         {activeTab === 'config' && <ConfigTab apiKey={apiKey} setApiKey={handleApiKey} t={t} />}

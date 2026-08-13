@@ -4,16 +4,16 @@ export function exportPDF(result: any, t: T) {
   import('jspdf').then(({ jsPDF }) => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' })
     const W = 210, margin = 20, cw = W - margin * 2
-    const cyan: [number,number,number] = [0, 229, 255]
-    const dark: [number,number,number] = [5, 9, 18]
-    const white: [number,number,number] = [255, 255, 255]
+    const cyan: [number,number,number] = [26, 145, 240]
+    const dark: [number,number,number] = [255, 255, 255]
+    const white: [number,number,number] = [30, 37, 50]
     const muted: [number,number,number] = [90, 112, 138]
-    const green: [number,number,number] = [16, 217, 160]
-    const red: [number,number,number] = [248, 113, 113]
-    const gold: [number,number,number] = [251, 191, 36]
+    const green: [number,number,number] = [22, 163, 74]
+    const red: [number,number,number] = [239, 68, 68]
+    const gold: [number,number,number] = [245, 158, 11]
 
     doc.setFillColor(...dark); doc.rect(0, 0, 210, 297, 'F')
-    doc.setFillColor(8, 13, 26); doc.rect(0, 0, 210, 22, 'F')
+    doc.setFillColor(247, 249, 252); doc.rect(0, 0, 210, 22, 'F')
     doc.setTextColor(...cyan); doc.setFontSize(14); doc.setFont('helvetica', 'bold')
     doc.text('ATS ANALYZER', margin, 14)
     doc.setFontSize(8); doc.setFont('helvetica', 'normal')
@@ -26,7 +26,7 @@ export function exportPDF(result: any, t: T) {
 
     const scoreColor = result.score >= 70 ? green : result.score >= 50 ? gold : red
     doc.setFillColor(...scoreColor); doc.roundedRect(margin, y, 40, 18, 3, 3, 'F')
-    doc.setTextColor(0, 0, 0); doc.setFontSize(20); doc.setFont('helvetica', 'bold')
+    doc.setTextColor(255, 255, 255); doc.setFontSize(20); doc.setFont('helvetica', 'bold')
     doc.text(result.score + '%', margin + 20, y + 12, { align: 'center' })
     doc.setFontSize(9); doc.setTextColor(...muted); doc.text(t.compatibility, margin + 46, y + 5)
     const statusLabel = result.score >= 70 ? t.statusHigh : result.score >= 50 ? t.statusMid : t.statusLow
@@ -51,7 +51,7 @@ export function exportPDF(result: any, t: T) {
       const mc: [number,number,number] = m.color === 'green' ? green : m.color === 'gold' ? gold : red
       doc.setTextColor(...white); doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.text(m.label, mx, my + 4)
       doc.setTextColor(...mc); doc.setFontSize(9); doc.text(m.val+'/'+m.total+' ('+pct+'%)', mx + colW - 4, my + 4, { align: 'right' })
-      doc.setFillColor(20, 34, 62); doc.roundedRect(mx, my + 6, colW - 8, 3, 1, 1, 'F')
+      doc.setFillColor(238, 242, 248); doc.roundedRect(mx, my + 6, colW - 8, 3, 1, 1, 'F')
       doc.setFillColor(...mc); doc.roundedRect(mx, my + 6, (colW - 8) * pct / 100, 3, 1, 1, 'F')
     })
     y += metrics.length > 2 ? 50 : 30
@@ -90,7 +90,7 @@ export function exportPDF(result: any, t: T) {
       doc.text(oLines.slice(0, 8), margin, y)
     }
 
-    doc.setFillColor(8, 13, 26); doc.rect(0, 285, 210, 12, 'F')
+    doc.setFillColor(247, 249, 252); doc.rect(0, 285, 210, 12, 'F')
     doc.setTextColor(...muted); doc.setFontSize(7)
     doc.text('ATS ANALYZER · AI POWERED · jobhunt-ats.netlify.app', W / 2, 292, { align: 'center' })
     doc.save('ATS_Report_' + (result.jobTitle || 'analysis').replace(/[^a-z0-9]/gi, '_').slice(0, 30) + '.pdf')

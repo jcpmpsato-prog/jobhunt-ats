@@ -62,7 +62,7 @@ export const i18n = {
     summaryLowDesc: 'Análise revela gaps importantes. É necessário trabalho de fundo no CV ou considerar vagas mais alinhadas ao perfil.',
     // Tabs
     tabAnalyze: '🔍 Analisar CV', tabHistory: '📂 Histórico',
-    tabRewrite: '✍️ Reescrever CV', tabSalary: '💰 Salário', tabConfig: '⚙️ Configuração',
+    tabFormat: '📄 Formatar CV', tabRewrite: '✍️ Reescrever CV', tabSalary: '💰 Salário', tabConfig: '⚙️ Configuração',
     // Salary tab
     salaryTitle: 'ANÁLISE SALARIAL COM IA',
     salaryJobLabel: 'CARGO *', salaryCompanyLabel: 'EMPRESA', salaryLocationLabel: 'CIDADE',
@@ -145,7 +145,7 @@ export const i18n = {
     summaryMidDesc: 'Analysis reveals partial alignment. Specific adjustments to missing terms can significantly increase screening.',
     summaryLowDesc: 'Analysis reveals important gaps. Substantial CV rework or considering more aligned jobs is needed.',
     tabAnalyze: '🔍 Analyze CV', tabHistory: '📂 History',
-    tabRewrite: '✍️ Rewrite CV', tabSalary: '💰 Salary', tabConfig: '⚙️ Config',
+    tabFormat: '📄 Format CV', tabRewrite: '✍️ Rewrite CV', tabSalary: '💰 Salary', tabConfig: '⚙️ Config',
     salaryTitle: 'SALARY ANALYSIS WITH AI',
     salaryJobLabel: 'JOB TITLE *', salaryCompanyLabel: 'COMPANY', salaryLocationLabel: 'CITY',
     salaryJobPlaceholder: 'Ex: Engineering Manager', salaryCompanyPlaceholder: 'Ex: Google', salaryLocationDefault: 'São Paulo',

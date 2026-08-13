@@ -9,9 +9,9 @@ import { claudeAnalyze, saveToHistory } from '../lib/analyzer'
 import { exportPDF } from '../lib/exportPdf'
 import type { T } from '../lib/i18n'
 
-const COLORS = { red: '#f87171', green: '#10d9a0', gold: '#fbbf24', cyan: '#00e5ff' }
+const COLORS = { red: '#ef4444', green: '#16a34a', gold: '#f59e0b', cyan: '#1a91f0' }
 
-function getScoreColor(s: number) { return s < 50 ? '#f87171' : s < 70 ? '#fbbf24' : '#10d9a0' }
+function getScoreColor(s: number) { return s < 50 ? '#ef4444' : s < 70 ? '#f59e0b' : '#16a34a' }
 function getScoreClass(s: number) { return s < 50 ? 'low' : s < 70 ? 'mid' : 'high' }
 
 function MiniMetric({ value, total, color, label }: { value: number; total: number; color: string; label: string }) {
@@ -25,7 +25,7 @@ function MiniMetric({ value, total, color, label }: { value: number; total: numb
 }
 
 function MetricCard({ data, icon, t }: { data: any; icon: string; t: T }) {
-  const color = COLORS[data.color as keyof typeof COLORS] ?? '#00e5ff'
+  const color = COLORS[data.color as keyof typeof COLORS] ?? '#1a91f0'
   return (
     <div className="metric-card">
       <div className="metric-head">
@@ -103,7 +103,7 @@ export default function ResultsPage({ result, t, lang, onBack, onNew, apiKey, cv
               {t.runDate} · {new Date(r.timestamp).toLocaleString(lang === 'pt' ? 'pt-BR' : 'en-US')}
               {r.analyzedBy === 'claude' && <span style={{ color: 'var(--cyan)', marginLeft: 8 }}>● CLAUDE AI</span>}
             </div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, color: 'var(--text-bright)', fontSize: 14 }}>{r.jobTitle}</div>
+            <div style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, color: 'var(--text-bright)', fontSize: 14 }}>{r.jobTitle}</div>
           </div>
         </div>
         <div className="results-bar-right">
@@ -142,10 +142,10 @@ export default function ResultsPage({ result, t, lang, onBack, onNew, apiKey, cv
               <Donut pct={r.score} size={220} stroke={12} color={scoreColor} showValue value={r.score} valueSize={64} label={t.compatibility} />
             </div>
             <div className="mini-stats">
-              <MiniMetric value={r.metrics.requirements.val} total={40} color={COLORS[r.metrics.requirements.color as keyof typeof COLORS] ?? '#00e5ff'} label={t.requirements} />
-              <MiniMetric value={r.metrics.experience.val} total={30} color={COLORS[r.metrics.experience.color as keyof typeof COLORS] ?? '#00e5ff'} label={t.experience} />
-              <MiniMetric value={r.metrics.terms.val} total={20} color={COLORS[r.metrics.terms.color as keyof typeof COLORS] ?? '#00e5ff'} label={t.terms} />
-              <MiniMetric value={r.metrics.education.val} total={10} color={COLORS[r.metrics.education.color as keyof typeof COLORS] ?? '#00e5ff'} label={t.education} />
+              <MiniMetric value={r.metrics.requirements.val} total={40} color={COLORS[r.metrics.requirements.color as keyof typeof COLORS] ?? '#1a91f0'} label={t.requirements} />
+              <MiniMetric value={r.metrics.experience.val} total={30} color={COLORS[r.metrics.experience.color as keyof typeof COLORS] ?? '#1a91f0'} label={t.experience} />
+              <MiniMetric value={r.metrics.terms.val} total={20} color={COLORS[r.metrics.terms.color as keyof typeof COLORS] ?? '#1a91f0'} label={t.terms} />
+              <MiniMetric value={r.metrics.education.val} total={10} color={COLORS[r.metrics.education.color as keyof typeof COLORS] ?? '#1a91f0'} label={t.education} />
             </div>
           </div>
           <div>

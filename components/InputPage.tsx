@@ -155,7 +155,7 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey }: Inp
             <span className="config-toggle-left">
               <Icon name="cpu" size={14} />
               {t.optionalConfig}
-              {apiKey && <span style={{ color: 'var(--green)', fontSize: 11, fontFamily: 'JetBrains Mono' }}>● ATIVO</span>}
+              {apiKey && <span style={{ color: 'var(--green)', fontSize: 11, fontFamily: 'Inter' }}>● ATIVO</span>}
             </span>
             <Icon name="chevron" size={14} />
           </button>

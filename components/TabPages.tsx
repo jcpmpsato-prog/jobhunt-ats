@@ -8,7 +8,7 @@ import type { T } from '../lib/i18n'
 export function HistoryTabPage({ onLoad, t }: { onLoad: (entry: any) => void; t: T }) {
   const [list, setList] = useState<any[]>(loadHistory())
   const refresh = () => setList(loadHistory())
-  const scoreColor = (s: number) => s >= 70 ? '#10d9a0' : s >= 50 ? '#fbbf24' : '#f87171'
+  const scoreColor = (s: number) => s >= 70 ? '#16a34a' : s >= 50 ? '#f59e0b' : '#ef4444'
 
   if (list.length === 0) return (
     <div className="ai-card" style={{ textAlign: 'center', padding: 48, color: 'var(--muted)' }}>
@@ -20,7 +20,7 @@ export function HistoryTabPage({ onLoad, t }: { onLoad: (entry: any) => void; t:
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 18, color: 'var(--text-bright)' }}>{t.historyTitle}</div>
+        <div style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 18, color: 'var(--text-bright)' }}>{t.historyTitle}</div>
         <button onClick={() => { clearHistory(); refresh() }} style={{ fontSize: 12, color: 'var(--red)', background: 'transparent', border: 'none', cursor: 'pointer' }}>{t.historyClear}</button>
       </div>
       <div className="history-list">
@@ -82,14 +82,14 @@ export function RewriteTab({ apiKey, t, lang }: { apiKey: string; t: T; lang: st
     border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)',
     fontSize: 12, marginTop: 4, resize: 'vertical' as const,
     boxSizing: 'border-box' as const, lineHeight: 1.5,
-    fontFamily: 'DM Sans, sans-serif',
+    fontFamily: 'Inter, sans-serif',
   }
-  const labelStyle = { fontSize: 11, color: 'var(--muted)', letterSpacing: '0.1em', fontFamily: 'JetBrains Mono, monospace' }
+  const labelStyle = { fontSize: 11, color: 'var(--muted)', letterSpacing: '0.1em', fontFamily: 'Inter, sans-serif' }
 
   return (
     <div>
       <div className="ai-card" style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 10, color: 'var(--cyan)', letterSpacing: '0.2em', fontFamily: 'JetBrains Mono, monospace', marginBottom: 12 }}>{t.rewriteTabTitle}</div>
+        <div style={{ fontSize: 10, color: 'var(--cyan)', letterSpacing: '0.2em', fontFamily: 'Inter, sans-serif', marginBottom: 12 }}>{t.rewriteTabTitle}</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
           <div>
             <label style={labelStyle}>{t.rewriteTabCvLabel}</label>
@@ -101,9 +101,9 @@ export function RewriteTab({ apiKey, t, lang }: { apiKey: string; t: T; lang: st
           </div>
         </div>
         <button onClick={run} disabled={loading || !cvText.trim() || !jdText.trim()} style={{
-          padding: '10px 24px', background: 'linear-gradient(135deg, #10d9a0, #00e5ff)',
-          border: 'none', borderRadius: 10, color: '#000', fontSize: 13, fontWeight: 700,
-          cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1, fontFamily: 'DM Sans, sans-serif',
+          padding: '10px 24px', background: 'linear-gradient(135deg, #16a34a, #1a91f0)',
+          border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700,
+          cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1, fontFamily: 'Inter, sans-serif',
         }}>
           {loading ? t.rewriteTabRunning : t.rewriteTabRun}
         </button>
@@ -164,23 +164,23 @@ export function SalaryTab({ apiKey, t }: { apiKey: string; t: T }) {
     width: '100%', padding: '10px 14px', background: 'var(--surface2)',
     border: '1px solid var(--border)', borderRadius: 8,
     color: 'var(--text)', fontSize: 13, marginTop: 4, boxSizing: 'border-box' as const,
-    fontFamily: 'DM Sans, sans-serif',
+    fontFamily: 'Inter, sans-serif',
   }
-  const labelStyle = { fontSize: 11, color: 'var(--muted)', letterSpacing: '0.1em', fontFamily: 'JetBrains Mono, monospace' }
+  const labelStyle = { fontSize: 11, color: 'var(--muted)', letterSpacing: '0.1em', fontFamily: 'Inter, sans-serif' }
 
   return (
     <div>
       <div className="ai-card" style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 10, color: 'var(--cyan)', letterSpacing: '0.2em', fontFamily: 'JetBrains Mono, monospace', marginBottom: 12 }}>{t.salaryTitle}</div>
+        <div style={{ fontSize: 10, color: 'var(--cyan)', letterSpacing: '0.2em', fontFamily: 'Inter, sans-serif', marginBottom: 12 }}>{t.salaryTitle}</div>
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
           <div><label style={labelStyle}>{t.salaryJobLabel}</label><input value={jobTitle} onChange={e => setJobTitle(e.target.value)} placeholder={t.salaryJobPlaceholder} style={inputStyle} /></div>
           <div><label style={labelStyle}>{t.salaryCompanyLabel}</label><input value={company} onChange={e => setCompany(e.target.value)} placeholder={t.salaryCompanyPlaceholder} style={inputStyle} /></div>
           <div><label style={labelStyle}>{t.salaryLocationLabel}</label><input value={location} onChange={e => setLocation(e.target.value)} placeholder={t.salaryLocationDefault} style={inputStyle} /></div>
         </div>
         <button onClick={analyze} disabled={loading || !jobTitle.trim()} style={{
-          padding: '10px 24px', background: 'linear-gradient(135deg, #00e5ff, #0080ff)',
-          border: 'none', borderRadius: 10, color: '#000', fontSize: 13, fontWeight: 700,
-          cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1, fontFamily: 'DM Sans, sans-serif',
+          padding: '10px 24px', background: 'linear-gradient(135deg, #1a91f0, #0b7ad1)',
+          border: 'none', borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700,
+          cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1, fontFamily: 'Inter, sans-serif',
         }}>
           {loading ? t.salarySearching : t.salarySearch}
         </button>
@@ -191,8 +191,8 @@ export function SalaryTab({ apiKey, t }: { apiKey: string; t: T }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
             {([['market_min', t.salaryMin, 'var(--muted)'], ['market_median', t.salaryMedian, 'var(--gold)'], ['market_max', t.salaryMax, 'var(--green)']] as [string, string, string][]).map(([key, label, color]) => (
               <div key={key} style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 12, padding: 14, textAlign: 'center' }}>
-                <div style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.12em', fontFamily: 'JetBrains Mono, monospace', marginBottom: 6 }}>{label}</div>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 20, color }}>{fmt(result[key])}</div>
+                <div style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.12em', fontFamily: 'Inter, sans-serif', marginBottom: 6 }}>{label}</div>
+                <div style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 20, color }}>{fmt(result[key])}</div>
               </div>
             ))}
           </div>
@@ -212,7 +212,7 @@ export function ConfigTab({ apiKey, setApiKey, t }: { apiKey: string; setApiKey:
 
   return (
     <div className="ai-card">
-      <div style={{ fontSize: 10, color: 'var(--cyan)', letterSpacing: '0.2em', fontFamily: 'JetBrains Mono, monospace', marginBottom: 8 }}>{t.configTitle}</div>
+      <div style={{ fontSize: 10, color: 'var(--cyan)', letterSpacing: '0.2em', fontFamily: 'Inter, sans-serif', marginBottom: 8 }}>{t.configTitle}</div>
       <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>
         {t.configDesc}{' '}
         <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer" style={{ color: 'var(--cyan)' }}>console.anthropic.com</a>
@@ -223,12 +223,12 @@ export function ConfigTab({ apiKey, setApiKey, t }: { apiKey: string; setApiKey:
           value={apiKey}
           onChange={e => setApiKey(e.target.value)}
           placeholder="sk-ant-..."
-          style={{ flex: 1, padding: '10px 14px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)', fontSize: 13, fontFamily: 'JetBrains Mono, monospace' }}
+          style={{ flex: 1, padding: '10px 14px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)', fontSize: 13, fontFamily: 'Inter, sans-serif' }}
         />
         <button onClick={() => setShow(!show)} style={{ padding: '10px 14px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--muted)', cursor: 'pointer' }}>
           <Icon name={show ? 'eyeOff' : 'eye'} size={16} />
         </button>
-        <button onClick={save} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #00e5ff, #0080ff)', border: 'none', borderRadius: 8, color: '#000', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+        <button onClick={save} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #1a91f0, #0b7ad1)', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
           {saved ? t.configSaved : t.configSave}
         </button>
       </div>

@@ -20,7 +20,7 @@ export default function HistoryModal({ isOpen, onClose, onLoad, t }: HistoryModa
 
   if (!isOpen) return null
 
-  const scoreColor = (s: number) => s >= 70 ? '#10d9a0' : s >= 50 ? '#fbbf24' : '#f87171'
+  const scoreColor = (s: number) => s >= 70 ? '#16a34a' : s >= 50 ? '#f59e0b' : '#ef4444'
 
   const del = (id: number) => { deleteFromHistory(id); setHistory(loadHistory()) }
   const clearAll = () => { clearHistory(); setHistory([]) }

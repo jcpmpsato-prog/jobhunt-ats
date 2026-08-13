@@ -1,7 +1,7 @@
 'use client'
 import type { T } from '../lib/i18n'
 
-export type TabId = 'analyze' | 'history' | 'rewrite' | 'salary' | 'config'
+export type TabId = 'analyze' | 'history' | 'format' | 'rewrite' | 'salary' | 'config'
 
 interface NavTabsProps {
   activeTab: TabId
@@ -14,6 +14,7 @@ export default function NavTabs({ activeTab, setActiveTab, t, historyCount }: Na
   const tabs: { id: TabId; label: string; badge?: number }[] = [
     { id: 'analyze', label: t.tabAnalyze },
     { id: 'history', label: t.tabHistory, badge: historyCount },
+    { id: 'format', label: (t as any).tabFormat },
     { id: 'rewrite', label: t.tabRewrite },
     { id: 'salary', label: t.tabSalary },
     { id: 'config', label: t.tabConfig },
@@ -28,17 +29,17 @@ export default function NavTabs({ activeTab, setActiveTab, t, historyCount }: Na
           style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px',
             borderRadius: 10, border: '1px solid', cursor: 'pointer',
-            fontSize: 13, fontWeight: 600, fontFamily: 'DM Sans, sans-serif', transition: 'all 0.15s',
+            fontSize: 13, fontWeight: 600, fontFamily: 'Inter, sans-serif', transition: 'all 0.15s',
             background: activeTab === tab.id ? 'var(--cyan)' : 'var(--surface)',
-            color: activeTab === tab.id ? '#000' : 'var(--text)',
+            color: activeTab === tab.id ? '#fff' : 'var(--text)',
             borderColor: activeTab === tab.id ? 'var(--cyan)' : 'var(--border)',
           }}
         >
           {tab.label}
           {tab.badge != null && tab.badge > 0 && (
             <span style={{
-              background: activeTab === tab.id ? '#000' : 'var(--cyan)',
-              color: activeTab === tab.id ? 'var(--cyan)' : '#000',
+              background: activeTab === tab.id ? '#fff' : 'var(--cyan)',
+              color: activeTab === tab.id ? 'var(--cyan)' : '#fff',
               borderRadius: '50%', width: 18, height: 18, fontSize: 10, fontWeight: 800,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
