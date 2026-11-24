@@ -4,7 +4,14 @@ import Jobs from './Jobs'
 import Studio from './Studio'
 import Directory from './Directory'
 
-const tracks = {
+interface TrackInfo {
+  label?: string
+  title: string
+  text: string
+  terms: string
+}
+
+const tracks: Record<string, TrackInfo> = {
   Thinkers: { title: 'Estratégia e produto', text: 'Pesquisa, visão de negócio e desenho de soluções.', terms: 'estratégia produto inovação' },
   Devs: { title: 'Engenharia e tecnologia', text: 'Software, arquitetura e automação aplicada.', terms: 'desenvolvedor engenharia de software' },
   'Gestão de Projetos': { label: 'Project & Delivery Managers', title: 'Portfólio, Programas e Delivery', text: 'Gestão de projetos, governança de portfólio, liderança de programas, Delivery e PMO/VMO.', terms: '("Gerente de Projetos" OR "Project Manager" OR "Gerente de Portfólio" OR "Portfolio Manager" OR "Gerente de Programas" OR "Program Manager" OR "Delivery Manager" OR PMO OR VMO)' },

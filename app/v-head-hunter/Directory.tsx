@@ -2,7 +2,7 @@
 import {useState} from 'react'
 
 interface Person {name:string; email:string; skills:string; portfolio:string}
-export default function Directory({track}:{track:string}){
+export default function Directory({track,label=track}:{track:string;label?:string}){
   const [token,setToken]=useState('')
   const [query,setQuery]=useState('')
   const [people,setPeople]=useState<Person[]>([])
@@ -17,7 +17,7 @@ export default function Directory({track}:{track:string}){
       setPeople(list);setStatus(list.length===50?'Exibindo 50 perfis. Refine a busca para localizar outros inscritos.':list.length+' perfis encontrados.')
     }catch(e){setStatus((e as Error).message)}finally{setBusy(false)}
   }
-  return <details className="vh-panel" style={{marginTop:16}}><summary>Área do departamento · Inscritos em {track}</summary>
+  return <details className="vh-panel" style={{marginTop:16}}><summary>Área do departamento · Inscritos em {label}</summary>
     <form className="vh-row" onSubmit={e=>{e.preventDefault();search()}}><label>Credencial do departamento<input type="password" required value={token} onChange={e=>{setToken(e.target.value);setPeople([])}}/></label>
     <label>Nome ou competência<input value={query} onChange={e=>setQuery(e.target.value)}/></label><button disabled={busy}>Consultar inscritos</button></form>
     <p role="status">{status}</p>{people.map((p,i)=><article key={i} className="vh-result"><div><h3>{p.name}</h3><p>{p.skills}</p><a href={'mailto:'+p.email}>{p.email}</a></div><a href={p.portfolio} target="_blank" rel="noreferrer">Portfólio ↗</a></article>)}</details>
