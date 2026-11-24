@@ -59,11 +59,12 @@ interface ResultsPageProps {
   onNew: () => void
   apiKey: string
   cvText: string
+  onReanalysis: (entry: any) => void
   jdText: string
   onLoadHistory: (entry: any) => void
 }
 
-export default function ResultsPage({ result, t, lang, onBack, onNew, apiKey, cvText, jdText, onLoadHistory }: ResultsPageProps) {
+export default function ResultsPage({ result, t, lang, onBack, onNew, apiKey, cvText, jdText, onLoadHistory, onReanalysis }: ResultsPageProps) {
   const [adaptOpen, setAdaptOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [rewriteOpen, setRewriteOpen] = useState(false)
@@ -82,8 +83,9 @@ export default function ResultsPage({ result, t, lang, onBack, onNew, apiKey, cv
     setAiLoading(true)
     try {
       const analysis = await claudeAnalyze(cvText, jdText, lang, apiKey)
+      analysis.jobUrl = r.jobUrl
       saveToHistory(analysis)
-      onLoadHistory(analysis)
+      onReanalysis(analysis)
     } catch (e: any) { alert('Erro: ' + e.message) }
     setAiLoading(false)
   }
@@ -104,6 +106,11 @@ export default function ResultsPage({ result, t, lang, onBack, onNew, apiKey, cv
               {r.analyzedBy === 'claude' && <span style={{ color: 'var(--cyan)', marginLeft: 8 }}>● CLAUDE AI</span>}
             </div>
             <div style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, color: 'var(--text-bright)', fontSize: 14 }}>{r.jobTitle}</div>
+            {typeof r.jobUrl === 'string' && /^https?:\/\//i.test(r.jobUrl) && (
+              <a className="paste-link" href={r.jobUrl} target="_blank" rel="noopener noreferrer">
+                {lang === 'pt' ? 'Abrir anúncio original' : 'Open original posting'}
+              </a>
+            )}
           </div>
         </div>
         <div className="results-bar-right">
@@ -115,14 +122,14 @@ export default function ResultsPage({ result, t, lang, onBack, onNew, apiKey, cv
       <div className="feature-bar">
         <span className="feature-bar-label">{t.featureActions}</span>
         <button className={`btn-feature cyan ${aiLoading ? 'loading' : ''}`}
-          disabled={!apiKey || !cvText || aiLoading} onClick={handleAiAnalysis}>
+          disabled={!apiKey || !cvText || !jdText || aiLoading} onClick={handleAiAnalysis}>
           <Icon name="sparkles" size={14} />
           {aiLoading ? t.aiAnalysisLoading : t.btnAiAnalysis}
         </button>
         <button className="btn-feature purple" onClick={() => setHistoryOpen(true)}>
           <Icon name="briefcase" size={14} />{t.btnHistory}
         </button>
-        <button className="btn-feature green" onClick={() => setRewriteOpen(true)}>
+        <button className="btn-feature green" disabled={!cvText || !jdText} onClick={() => setRewriteOpen(true)}>
           <Icon name="edit" size={14} />{t.btnRewrite}
         </button>
         <button className={`btn-feature gold ${pdfLoading ? 'loading' : ''}`}

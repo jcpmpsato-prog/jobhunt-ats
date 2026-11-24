@@ -20,6 +20,7 @@ export default function Header({ t, lang, setLang }: HeaderProps) {
           </div>
         </div>
         <div className="header-right">
+          <a className="header-pill" href="/v-head-hunter/">V-Head Hunter ↗</a>
           <div className="lang-switch">
             <button className={`lang-btn ${lang === 'pt' ? 'active' : ''}`} onClick={() => setLang('pt')}>PT</button>
             <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>EN</button>
