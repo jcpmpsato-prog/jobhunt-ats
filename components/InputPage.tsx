@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Icon from './Icon'
 import { extractText, formatFileSize } from '../lib/fileExtraction'
 import type { T } from '../lib/i18n'
@@ -34,6 +34,18 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoF
   const [unreadablePages, setUnreadablePages] = useState<number[]>([])
   const [jobUrl, setJobUrl] = useState('')
   const [reviewCv, setReviewCv] = useState(false)
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('vh-selected-job')
+      if (!raw) return
+      sessionStorage.removeItem('vh-selected-job')
+      const job = JSON.parse(raw)
+      if (parseJobUrl(job.url)) {
+        setJobUrl(job.url)
+        setJdText(typeof job.description === 'string' ? job.description : '')
+      }
+    } catch { /* Manual input remains available. */ }
+  }, [])
   const pt = lang === 'pt'
   const source = parseJobUrl(jobUrl)
   const cvInputRef = useRef<HTMLInputElement>(null)
