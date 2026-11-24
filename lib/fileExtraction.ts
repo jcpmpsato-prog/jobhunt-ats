@@ -1,12 +1,14 @@
+import { readPdfPage } from './pdfReadingOrder'
+
 export function formatFileSize(bytes: number) {
   if (bytes < 1024) return bytes + ' B'
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
   return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
 }
 
-export async function extractText(file: File): Promise<string> {
+export async function extractText(file: File, onUnreadablePages?: (pages: number[]) => void): Promise<string> {
   const ext = file.name.toLowerCase().split('.').pop()
-  if (ext === 'pdf') return extractPdfText(file)
+  if (ext === 'pdf') return extractPdfText(file, onUnreadablePages)
   if (ext === 'docx' || ext === 'doc') return extractDocxText(file)
   if (ext === 'txt') return file.text()
   throw new Error('Formato não suportado')
@@ -32,21 +34,26 @@ async function getPdfjs(): Promise<any> {
   return pdfjsLibPromise
 }
 
-async function extractPdfText(file: File): Promise<string> {
+async function extractPdfText(file: File, onUnreadablePages?: (pages: number[]) => void): Promise<string> {
   const pdfjsLib = await getPdfjs()
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
-  let text = ''
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i)
-    const tc = await page.getTextContent()
-    const pageText = tc.items.map((item: { str?: string; hasEOL?: boolean }) =>
-      typeof item.str === 'string' ? item.str + (item.hasEOL ? '\n' : ' ') : ''
-    ).join('').trim()
-    text += pageText + '\n\n'
+  const pages: string[] = []
+  const unreadablePages: number[] = []
+  try {
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i)
+      const { items } = await page.getTextContent()
+      const text = readPdfPage(items, page.getViewport({ scale: 1 }).width)
+      if (text) pages.push(text)
+      else unreadablePages.push(i)
+    }
+  } finally {
+    await pdf.destroy()
   }
-  if (text.trim().length < 50) throw new Error('PDF sem texto extraível (pode ser scan).')
-  return text.trim()
+  if (!pages.length) throw new Error('PDF sem texto extraível (pode ser scan).')
+  if (unreadablePages.length) onUnreadablePages?.(unreadablePages)
+  return pages.join('\n\n')
 }
 
 async function extractDocxText(file: File): Promise<string> {

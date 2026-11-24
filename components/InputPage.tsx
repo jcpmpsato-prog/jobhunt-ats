@@ -30,6 +30,7 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoF
   const [extracting, setExtracting] = useState(false)
   const [extractError, setExtractError] = useState<string | null>(null)
   const [jdText, setJdText] = useState('')
+  const [unreadablePages, setUnreadablePages] = useState<number[]>([])
   const [jobUrl, setJobUrl] = useState('')
   const [reviewCv, setReviewCv] = useState(false)
   const pt = lang === 'pt'
@@ -39,9 +40,9 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoF
   const handleCvFile = async (f: File | null | undefined) => {
     if (!f) return
     if (f.size > 5 * 1024 * 1024) { alert('Máximo 5MB'); return }
-    setCvFile(f); setReviewCv(false); setExtracting(true); setExtractError(null); setCvText('')
+    setCvFile(f); setReviewCv(false); setUnreadablePages([]); setExtracting(true); setExtractError(null); setCvText('')
     try {
-      const text = await extractText(f)
+      const text = await extractText(f, setUnreadablePages)
       setCvText(text)
     } catch (err: any) {
       setExtractError(err.message || t.extractError)
@@ -50,7 +51,7 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoF
     }
   }
 
-  const removeFile = () => { setCvFile(null); setCvText(''); setExtractError(null) }
+  const removeFile = () => { setCvFile(null); setUnreadablePages([]); setCvText(''); setExtractError(null) }
   const canRun = (!jobUrl.trim() || source) && cvText.trim().length >= 100 && jdText.trim().length >= 50
 
   return (
@@ -146,6 +147,10 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoF
                   <div className="extracting-text">{extractError}</div>
                 </div>
               )}
+              {unreadablePages.length > 0 && <p role="status">
+                {pt ? 'Páginas sem texto extraível' : 'Pages with no extractable text'} · {unreadablePages.join(', ')}.
+                {' '}{pt ? 'Revise o CV e complete o conteúdo dessas páginas antes de analisar.' : 'Review the CV and add any missing content before running the analysis.'}
+              </p>}
               {(cvText || reviewCv) && !extracting && (
                 <div>
                   <button type="button" className="paste-link" aria-expanded={reviewCv}
