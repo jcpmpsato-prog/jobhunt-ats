@@ -7,6 +7,7 @@ import Directory from './Directory'
 const tracks = {
   Thinkers: { title: 'Estratégia e produto', text: 'Pesquisa, visão de negócio e desenho de soluções.', terms: 'estratégia produto inovação' },
   Devs: { title: 'Engenharia e tecnologia', text: 'Software, arquitetura e automação aplicada.', terms: 'desenvolvedor engenharia de software' },
+  'Gestão de Projetos': { title: 'Portfólio, Programas e Delivery', text: 'Gestão de projetos, governança de portfólio, liderança de programas, Delivery e PMO/VMO.', terms: '("Gerente de Projetos" OR "Project Manager" OR "Gerente de Portfólio" OR "Portfolio Manager" OR "Gerente de Programas" OR "Program Manager" OR "Delivery Manager" OR PMO OR VMO)' },
   'Master Black Belts': { title: 'Excelência operacional', text: 'Lean Six Sigma, melhoria contínua e mentoria.', terms: '"Master Black Belt" Lean Six Sigma' },
 }
 type Track = keyof typeof tracks

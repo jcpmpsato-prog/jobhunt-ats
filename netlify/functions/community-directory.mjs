@@ -11,7 +11,7 @@ export default async function directory(request) {
   }
   const params = new URL(request.url).searchParams
   const track = params.get('track')
-  if (!['Thinkers', 'Devs', 'Master Black Belts'].includes(track)) return new Response(null, { status: 400 })
+  if (!['Thinkers', 'Devs', 'Gestão de Projetos', 'Master Black Belts'].includes(track)) return new Response(null, { status: 400 })
   const query = (params.get('q') || '').trim().toLocaleLowerCase()
   const store = getStore('community-applications')
   const results = []

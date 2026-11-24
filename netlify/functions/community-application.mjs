@@ -8,7 +8,7 @@ export default async function submit(request) {
   const skills = field('skills')
   if (skills.length > 600 || !name || name.length > 120 || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     || portfolio.length > 1000 || !URL.canParse(portfolio) || !['https:', 'http:'].includes(new URL(portfolio).protocol)
-    || !['Thinkers', 'Devs', 'Master Black Belts'].includes(track) || field('consent') !== 'yes') {
+    || !['Thinkers', 'Devs', 'Gestão de Projetos', 'Master Black Belts'].includes(track) || field('consent') !== 'yes') {
     return new Response(null, { status: 400 })
   }
   await getStore('community-applications').setJSON(track + '/' + crypto.randomUUID(), {
