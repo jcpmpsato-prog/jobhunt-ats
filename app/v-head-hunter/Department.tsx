@@ -47,7 +47,7 @@ export default function Department() {
       <label>Refinar busca<input value={term} onChange={e=>setTerm(e.target.value)} placeholder="Ex. São Paulo, saúde, gestão de portfólio"/></label>
       <div className="vh-actions"><a href={'https://www.linkedin.com/search/results/people/?keywords='+encodeURIComponent(keywords)} target="_blank" rel="noreferrer">Buscar no LinkedIn ↗</a>
       {track === 'Devs' && <a href={'https://github.com/search?type=users&q='+encodeURIComponent(term.trim() || 'location:Brazil')} target="_blank" rel="noreferrer">Buscar no GitHub ↗</a>}</div></div>
-      <form className="vh-panel" onSubmit={apply}><h3>Participar como {track}</h3><input type="hidden" name="track" value={track}/>
+      <form className="vh-panel" onSubmit={apply}><h3>Participar como {tracks[track].label || track}</h3><input type="hidden" name="track" value={track}/>
       <label>Nome<input name="name" required maxLength={120} autoComplete="name"/></label><label>E-mail de contato<input name="email" type="email" required maxLength={254} autoComplete="email"/></label>
       <label>Competências<input name="skills" maxLength={600} placeholder="Ex. Kaizen, gestão de portfólio"/></label><label>Perfil ou portfólio<input name="portfolio" type="url" placeholder="https://" required maxLength={1000}/></label>
       <label className="vh-check"><input type="checkbox" required name="consent" value="yes"/>Autorizo a V-WORK a avaliar meu perfil e entrar em contato sobre a comunidade.</label>
