@@ -30,6 +30,7 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoF
   const [extracting, setExtracting] = useState(false)
   const [extractError, setExtractError] = useState<string | null>(null)
   const [jdText, setJdText] = useState('')
+  const [ocrPages, setOcrPages] = useState<number[]>([])
   const [unreadablePages, setUnreadablePages] = useState<number[]>([])
   const [jobUrl, setJobUrl] = useState('')
   const [reviewCv, setReviewCv] = useState(false)
@@ -40,9 +41,12 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoF
   const handleCvFile = async (f: File | null | undefined) => {
     if (!f) return
     if (f.size > 5 * 1024 * 1024) { alert('Máximo 5MB'); return }
-    setCvFile(f); setReviewCv(false); setUnreadablePages([]); setExtracting(true); setExtractError(null); setCvText('')
+    setCvFile(f); setReviewCv(false); setUnreadablePages([]); setOcrPages([]); setExtracting(true); setExtractError(null); setCvText('')
     try {
-      const text = await extractText(f, setUnreadablePages)
+      const text = await extractText(f, ({ unreadablePages, ocrPages }) => {
+        setUnreadablePages(unreadablePages)
+        setOcrPages(ocrPages)
+      })
       setCvText(text)
     } catch (err: any) {
       setExtractError(err.message || t.extractError)
@@ -51,7 +55,7 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoF
     }
   }
 
-  const removeFile = () => { setCvFile(null); setUnreadablePages([]); setCvText(''); setExtractError(null) }
+  const removeFile = () => { setCvFile(null); setUnreadablePages([]); setOcrPages([]); setCvText(''); setExtractError(null) }
   const canRun = (!jobUrl.trim() || source) && cvText.trim().length >= 100 && jdText.trim().length >= 50
 
   return (
@@ -147,6 +151,10 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoF
                   <div className="extracting-text">{extractError}</div>
                 </div>
               )}
+              {ocrPages.length > 0 && <p role="status">
+                {pt ? 'Páginas lidas por OCR' : 'Pages read using OCR'} · {ocrPages.join(', ')}.
+                {' '}{pt ? 'Confira nomes, datas e certificações no texto extraído.' : 'Check names, dates, and certifications in the extracted text.'}
+              </p>}
               {unreadablePages.length > 0 && <p role="status">
                 {pt ? 'Páginas sem texto extraível' : 'Pages with no extractable text'} · {unreadablePages.join(', ')}.
                 {' '}{pt ? 'Revise o CV e complete o conteúdo dessas páginas antes de analisar.' : 'Review the CV and add any missing content before running the analysis.'}
