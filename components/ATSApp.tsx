@@ -29,7 +29,7 @@ export default function ATSApp() {
     if (typeof window !== 'undefined') localStorage.setItem('ats_mvp_key', k)
   }
 
-  const onAnalyze = async (cvText: string, jdText: string, key: string) => {
+  const onAnalyze = async (cvText: string, jdText: string, key: string, jobUrl?: string) => {
     setPage('processing')
     setLastCvText(cvText); setLastJdText(jdText)
     const effectiveKey = key || apiKey
@@ -41,6 +41,7 @@ export default function ATSApp() {
     } else {
       analysis = smartAnalyze(cvText, jdText, lang)
     }
+    analysis.jobUrl = jobUrl
     saveToHistory(analysis)
     setHistoryCount(loadHistory().length)
     setResult(analysis)
@@ -48,6 +49,7 @@ export default function ATSApp() {
   }
 
   const onLoadHistory = (entry: any) => {
+    setLastCvText(''); setLastJdText('')
     setResult(entry); setPage('results'); setActiveTab('analyze')
   }
 
@@ -68,7 +70,7 @@ export default function ATSApp() {
             {page === 'results' && result && (
               <ResultsPage result={result} t={t} lang={lang}
                 onBack={() => setPage('input')} onNew={() => { setResult(null); setPage('input') }}
-                apiKey={apiKey} cvText={lastCvText} jdText={lastJdText} onLoadHistory={onLoadHistory} />
+                apiKey={apiKey} cvText={lastCvText} jdText={lastJdText} onLoadHistory={onLoadHistory} onReanalysis={setResult} />
             )}
           </>
         )}

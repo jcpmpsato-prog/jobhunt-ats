@@ -4,10 +4,19 @@ import Icon from './Icon'
 import { extractText, formatFileSize } from '../lib/fileExtraction'
 import type { T } from '../lib/i18n'
 
+function parseJobUrl(value: string): URL | undefined {
+  try {
+    const url = new URL(value.trim())
+    if (['http:', 'https:'].includes(url.protocol) && !url.username && !url.password) return url
+  } catch {
+    return undefined
+  }
+}
+
 interface InputPageProps {
   t: T
   lang: string
-  onAnalyze: (cvText: string, jdText: string, apiKey: string) => void
+  onAnalyze: (cvText: string, jdText: string, apiKey: string, jobUrl?: string) => void
   apiKey: string
   setApiKey: (k: string) => void
   onGoFormat?: () => void
@@ -21,12 +30,16 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoF
   const [extracting, setExtracting] = useState(false)
   const [extractError, setExtractError] = useState<string | null>(null)
   const [jdText, setJdText] = useState('')
+  const [jobUrl, setJobUrl] = useState('')
+  const [reviewCv, setReviewCv] = useState(false)
+  const pt = lang === 'pt'
+  const source = parseJobUrl(jobUrl)
   const cvInputRef = useRef<HTMLInputElement>(null)
 
   const handleCvFile = async (f: File | null | undefined) => {
     if (!f) return
     if (f.size > 5 * 1024 * 1024) { alert('Máximo 5MB'); return }
-    setCvFile(f); setExtracting(true); setExtractError(null); setCvText('')
+    setCvFile(f); setReviewCv(false); setExtracting(true); setExtractError(null); setCvText('')
     try {
       const text = await extractText(f)
       setCvText(text)
@@ -38,7 +51,7 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoF
   }
 
   const removeFile = () => { setCvFile(null); setCvText(''); setExtractError(null) }
-  const canRun = cvText.trim().length >= 100 && jdText.trim().length >= 50
+  const canRun = (!jobUrl.trim() || source) && cvText.trim().length >= 100 && jdText.trim().length >= 50
 
   return (
     <div>
@@ -133,8 +146,15 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoF
                   <div className="extracting-text">{extractError}</div>
                 </div>
               )}
-              {cvText && !extracting && (
-                <div className="cv-preview">{cvText.slice(0, 800)}{cvText.length > 800 ? '...' : ''}</div>
+              {(cvText || reviewCv) && !extracting && (
+                <div>
+                  <button type="button" className="paste-link" aria-expanded={reviewCv}
+                    onClick={() => setReviewCv(!reviewCv)}>
+                    {reviewCv ? (pt ? 'Fechar revisão' : 'Close review') : (pt ? 'Revisar texto completo do CV' : 'Review full CV text')}
+                  </button>
+                  {reviewCv && <textarea className="text-input" aria-label={pt ? 'Texto extraído do CV' : 'Extracted CV text'}
+                    value={cvText} onChange={e => setCvText(e.target.value)} />}
+                </div>
               )}
             </div>
           )}
@@ -151,13 +171,25 @@ export default function InputPage({ t, lang, onAnalyze, apiKey, setApiKey, onGoF
               <div className="input-title">{t.jdTitle}</div>
             </div>
           </div>
-          <textarea className="text-input" placeholder={t.jdPlaceholder}
+          <label htmlFor="job-url">{pt ? 'Link da vaga (opcional)' : 'Job link (optional)'}</label>
+          <input id="job-url" className="text-input" style={{ minHeight: 0 }} type="url"
+            value={jobUrl} placeholder="https://" onChange={e => setJobUrl(e.target.value)}
+            aria-invalid={Boolean(jobUrl.trim() && !source)} aria-describedby="job-import-help" />
+          <p id="job-import-help">
+            {jobUrl.trim() && !source
+              ? (pt ? 'Informe um link válido com http ou https.' : 'Enter a valid http or https link.')
+              : (pt ? 'Abra o anúncio na plataforma e cole a descrição completa abaixo.' : 'Open the job posting and paste its full description below.')}
+          </p>
+          {source && <a className="paste-link" href={source.href} target="_blank" rel="noopener noreferrer">
+            {pt ? 'Abrir anúncio' : 'Open job posting'} · {source.hostname}
+          </a>}
+          <textarea className="text-input" aria-label={pt ? 'Descrição completa da vaga' : 'Full job description'} placeholder={t.jdPlaceholder}
             value={jdText} onChange={e => setJdText(e.target.value)} />
         </div>
       </div>
 
       <div className="cta-section">
-        <button className="btn-primary-big" disabled={!canRun} onClick={() => onAnalyze(cvText, jdText, apiKey)}>
+        <button className="btn-primary-big" disabled={!canRun} onClick={() => onAnalyze(cvText, jdText, apiKey, source?.href)}>
           <Icon name="zap" size={18} />
           {t.runAnalysis}
         </button>

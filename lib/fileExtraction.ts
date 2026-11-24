@@ -40,7 +40,10 @@ async function extractPdfText(file: File): Promise<string> {
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i)
     const tc = await page.getTextContent()
-    text += (tc.items as any[]).map((it: any) => it.str).join(' ') + '\n\n'
+    const pageText = tc.items.map((item: { str?: string; hasEOL?: boolean }) =>
+      typeof item.str === 'string' ? item.str + (item.hasEOL ? '\n' : ' ') : ''
+    ).join('').trim()
+    text += pageText + '\n\n'
   }
   if (text.trim().length < 50) throw new Error('PDF sem texto extraível (pode ser scan).')
   return text.trim()
