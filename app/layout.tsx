@@ -1,10 +1,11 @@
 import React from 'react'
 import type { Metadata } from 'next'
 import './globals.css'
+import './v-head-hunter/department.css'
 
 export const metadata: Metadata = {
-  title: 'ATS Analyzer · Otimize seu currículo para a vaga',
-  description: 'Compare seu currículo com a vaga em segundos, receba análise semântica com IA e baixe seu CV formatado no padrão ATS',
+  title: 'V-Head Hunter | Departamento de Profissionais · V-WORK',
+  description: 'Encontre oportunidades, prepare candidaturas e conecte profissionais à comunidade V-WORK.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

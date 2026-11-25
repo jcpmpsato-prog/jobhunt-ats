@@ -41,7 +41,7 @@ export default function Department() {
   }
   const keywords = [tracks[track].terms, term.trim()].filter(Boolean).join(' ')
   return <main className="vh">
-    <header className="vh-nav"><a href="#inicio" className="vh-brand">V<span>／</span>WORK</a><nav aria-label="Departamento"><a href="#comunidade">Comunidade</a><a href="#radar">Vagas</a><a href="/">ATS Analyzer ↗</a></nav></header>
+    <header className="vh-nav"><a href="#inicio" className="vh-brand">V<span>／</span>WORK</a><nav aria-label="Departamento"><a href="#comunidade">Comunidade</a><a href="#radar">Vagas</a></nav></header>
     <section className="vh-hero" id="inicio"><div><p className="vh-kicker">V-WORK TOWER &nbsp; / &nbsp; DEPARTAMENTO DE PROFISSIONAIS</p>
       <h1>V-Head<br/><em>Hunter.</em></h1><p className="vh-intro">Encontre sua próxima oportunidade ou traga sua experiência para a comunidade de profissionais da V-WORK.</p>
       <div className="vh-actions"><a className="vh-primary" href="#comunidade">Conhecer a comunidade ↓</a><a href="#radar">Buscar vagas ↗</a></div></div>
