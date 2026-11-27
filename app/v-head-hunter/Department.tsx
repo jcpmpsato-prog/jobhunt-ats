@@ -54,11 +54,17 @@ export default function Department() {
       <label>Refinar busca<input value={term} onChange={e=>setTerm(e.target.value)} placeholder="Ex. São Paulo, saúde, gestão de portfólio"/></label>
       <div className="vh-actions"><a href={'https://www.linkedin.com/search/results/people/?keywords='+encodeURIComponent(keywords)} target="_blank" rel="noreferrer">Buscar no LinkedIn ↗</a>
       {track === 'Devs' && <a href={'https://github.com/search?type=users&q='+encodeURIComponent(term.trim() || 'location:Brazil')} target="_blank" rel="noreferrer">Buscar no GitHub ↗</a>}</div></div>
-      <form className="vh-panel" onSubmit={apply}><h3>Participar como {tracks[track].label || track}</h3><input type="hidden" name="track" value={track}/>
+      <form className="vh-panel" onSubmit={apply}><h3>Participar como {tracks[track].label || track}</h3>
+      <p>Inscreva seu perfil para fazer parte da comunidade V-WORK. Esta inscrição não é uma candidatura a uma vaga.</p><input type="hidden" name="track" value={track}/>
       <label>Nome<input name="name" required maxLength={120} autoComplete="name"/></label><label>E-mail de contato<input name="email" type="email" required maxLength={254} autoComplete="email"/></label>
       <label>Competências<input name="skills" maxLength={600} placeholder="Ex. Kaizen, gestão de portfólio"/></label><label>Perfil ou portfólio<input name="portfolio" type="url" placeholder="https://" required maxLength={1000}/></label>
       <label className="vh-check"><input type="checkbox" required name="consent" value="yes"/>Autorizo a V-WORK a avaliar meu perfil e entrar em contato sobre a comunidade.</label>
       <button disabled={sending}>{sending?'Enviando…':'Enviar inscrição'}</button><p role="status">{status}</p></form></div><Directory key={track} track={track} label={tracks[track].label || track}/>
+    </section>
+    <section className="vh-section" id="manual"><p className="vh-kicker">AJUDA</p><h2>Como usar o V-Head Hunter.</h2>
+      <details className="vh-help"><summary>Radar de vagas</summary><p>Digite um cargo e busque na Remotive. LinkedIn e Indeed abrem buscas nas próprias plataformas. Para carregar várias vagas encontradas pelo Head Hunter Diário, selecione o arquivo JSON daquela rodada. Para uma vaga individual, use o link ou copie a descrição para o Estúdio.</p></details>
+      <details className="vh-help"><summary>Comunidade e inscrição profissional</summary><p>Escolha Thinkers, Devs, Project &amp; Delivery Managers ou Master Black Belts. “Buscar profissionais” abre uma busca pública no LinkedIn e, para Devs, no GitHub. “Participar como…” cadastra seu perfil na comunidade V-WORK. Informe nome, e-mail, competências e link do perfil ou portfólio e autorize o contato. O diretório de inscritos é uma área interna e requer a credencial do departamento.</p></details>
+      <details className="vh-help"><summary>Estúdio, triangulação com LinkedIn e arquivos</summary><p>Envie o currículo e revise o texto extraído. Cole a descrição completa da vaga. Selecione os módulos desejados; “Triangulação” compara a vaga e o currículo com o conteúdo do seu perfil do LinkedIn. Cole as seções relevantes do perfil, pois um link sozinho pode exigir login e não ser acessível. Aderência pode ser calculada localmente; os demais módulos usam a chave Anthropic. Para revisar uma gravação, envie áudio de até 25 MB e informe uma chave OpenAI para transcrição, ou cole uma transcrição. Confira a transcrição antes de gerar o relatório. Baixe o resultado em PDF ou Word.</p></details>
     </section>
     <Jobs/><Studio/><footer>V-WORK &nbsp; / &nbsp; Departamento de Profissionais</footer></main>
 }
